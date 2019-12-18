@@ -376,10 +376,9 @@ public class MainActivity extends AppCompatActivity {
     public void showCurrentLocation() {
 
         double altitude;
-//        utils.log(logID,"#a geocoder");
+
         Location location = getGPSCord();
         if (location == null) {
-//            utils.log(logID,"Location is null");
             strPosition = " ";
         }
         else {
@@ -388,7 +387,6 @@ public class MainActivity extends AppCompatActivity {
             altitude = location.getAltitude();
             strPosition = String.format(Locale.ENGLISH,"%.5f ; %.5f ; %.2f", latitude, longitude, altitude);
         }
-//        utils.log(logID,strPosition);
 
         if (isNetworkAvailable()) {
             Geocoder geocoder = new Geocoder(this, Locale.KOREA);
@@ -401,7 +399,6 @@ public class MainActivity extends AppCompatActivity {
         EditText et = findViewById(R.id.addressText);
         et.setText(text);
         et.setSelection(text.indexOf("\n"));
-//        utils.log(logID,"#shown");
     }
 
     public Location getGPSCord() {
