@@ -76,7 +76,6 @@ class BuildImage {
     }
 
     static final private SimpleDateFormat sdfHourMinSec = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.ENGLISH);
-//    static final private SimpleDateFormat sdfHourMin = new SimpleDateFormat("yy/MM/dd HH:mm", Locale.ENGLISH);
 
     private void setNewFileExif(File fileHa) {
         ExifInterface exifHa;
@@ -137,10 +136,9 @@ class BuildImage {
         canvas.drawBitmap(sigMap, xPos, yPos, sigPaint);
 
         if (strPlace.length() == 0) strPlace = "_";
-        if (strVoice.length() == 0) strVoice = "-";
+        if (strVoice.length() == 0) strVoice = "_";
         fontSize = (cameraOrientation == 1) ? width/52 : width/36;
         xPos = width/2;
-        yPos = height - fontSize - fontSize;
         yPos = height - fontSize - fontSize;
         drawTextOnCanvas(canvas, strAddress, fontSize, xPos, yPos);
         fontSize = fontSize * 15 / 10;
@@ -171,22 +169,6 @@ class BuildImage {
         canvas.drawText(text, xPos, yPos+d, paint);
         paint.setColor(Color.YELLOW);
         canvas.drawText(text, xPos, yPos, paint);
-    }
-
-    private boolean checkBright(Bitmap bitmap, int xPos, int yPos) {
-//        int brightness = 0;
-//        final int xMax = 120;
-//        final int yMax = 80;
-//        for (int x = -xMax; x < xMax; x+=4) {
-//            for (int y = -yMax; y < yMax; y+=4) {
-//                int color = bitmap.getPixel(xPos+x, yPos+y);
-//                int R = color & 0xff0000; int G = color & 0x00ff00; int B = color & 0xff;
-//                if (R > 0x8f0000 && G > 0x8f00 && B > 0x8f)
-//                    brightness++;
-//            }
-//        }
-//        return brightness < (xMax/3) * (yMax/3) / 3;
-        return false;
     }
 
     private void writeCameraFile(Bitmap bitmap, File file) {

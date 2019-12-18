@@ -22,8 +22,6 @@ public class Vars {
     static double latitude = 0;
     static double longitude = 0;
     static int zoomValue = 17;
-    static boolean CameraMapBoth = false;
-    static boolean isTimerOn = false;
 
     static Utils utils = new Utils();
     static Activity mActivity;

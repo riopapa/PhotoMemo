@@ -25,14 +25,10 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 
     CameraPreview(Context context, SurfaceView sv ) {
         super(context);
-
         mSurfaceView = sv;
-//        addView(mSurfaceView);
-
         mHolder = mSurfaceView.getHolder();
         mHolder.addCallback(this);
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-
     }
 
     public void setCamera(Camera camera) {
@@ -49,7 +45,6 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
             mSupportedPreviewSizes = localSizes;
             requestLayout();
 
-            // get Camera parameters
             Camera.Parameters params = mCamera.getParameters();
 
             List<String> focusModes = params.getSupportedFocusModes();
@@ -66,8 +61,6 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
                 e.printStackTrace();
             }
 
-            // Important: Call startPreview() to start updating the preview
-            // surface. Preview must be started before you can take a picture.
             mCamera.startPreview();
         }
 
@@ -75,13 +68,9 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // We purposely disregard child measurements because act as a
-        // wrapper to a SurfaceView that centers the camera preview instead
-        // of stretching it.
         final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
         final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         setMeasuredDimension(width, height);
-
         if (mSupportedPreviewSizes != null) {
             mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
         }
@@ -94,15 +83,12 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 
             final int width = r - l;
             final int height = b - t;
-
             int previewWidth = width;
             int previewHeight = height;
             if (mPreviewSize != null) {
                 previewWidth = mPreviewSize.width;
                 previewHeight = mPreviewSize.height;
             }
-
-            // Center the child SurfaceView within the parent.
             if (width * previewHeight > height * previewWidth) {
                 final int scaledChildWidth = previewWidth * height / previewHeight;
                 child.layout((width - scaledChildWidth) / 2, 0,
@@ -127,10 +113,6 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
-        // Surface will be destroyed when we return, so stop the preview.
-//        if (mCamera != null) {
-//            mCamera.stopPreview();
-//        }
     }
 
 
@@ -144,7 +126,6 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 
         int targetHeight = h;
 
-        // Try to find an size match aspect ratio and size
         for (Size size : sizes) {
             double ratio = (double) size.width / size.height;
             if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
@@ -154,7 +135,6 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
             }
         }
 
-        // Cannot find the one match the aspect ratio, ignore the requirement
         if (optimalSize == null) {
             minDiff = Double.MAX_VALUE;
             for (Size size : sizes) {
@@ -176,11 +156,7 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
                 if (allSizes.get(i).width > size.width)
                     size = allSizes.get(i);
             }
-            //set max Preview Size
             parameters.setPreviewSize(size.width, size.height);
-
-            // Important: Call startPreview() to start updating the preview surface.
-            // Preview must be started before you can take a picture.
             mCamera.startPreview();
         }
     }
