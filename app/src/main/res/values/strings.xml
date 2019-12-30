@@ -2,9 +2,8 @@
     <string name="app_name">PhoVoMemo</string>
     <string name="show_name">이게 뭐지</string>
 
-    <string name="txtSave">Shot\nSave</string>
-    <string name="txtCameraOnly">Camera Only\nShot\n</string>
-    <string name="txtCameraMap">Camera Map\nShot</string>
+    <string name="txtSave">Shot</string>
+    <string name="txtSaveExit">Shot\n&amp;Exit</string>
     <string name="txtPosition">Position</string>
     <string name="txtDateTime">Date\nTime</string>
 

@@ -54,6 +54,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static com.urrecliner.phovomemo.Vars.bitMapCamera;
 import static com.urrecliner.phovomemo.Vars.cameraOrientation;
@@ -95,9 +97,11 @@ public class MainActivity extends AppCompatActivity {
     private SensorManager mSensorManager;
     private DeviceOrientation deviceOrientation;
 
-    private Button btnCamera;
+    private Button btnShot, btnShotExit;
     private ImageButton btnClear;
     private int buttonBackColor;
+    private boolean exitApp;
+    private boolean sttMode;
 
     private TextView tVAddress;
     private int addressBackColor;
@@ -129,57 +133,62 @@ public class MainActivity extends AppCompatActivity {
         xPixel = Resources.getSystem().getDisplayMetrics().widthPixels;     // 2094, 2960
         yPixel = Resources.getSystem().getDisplayMetrics().heightPixels;    // 1080, 1440
 
+        tvVoice = findViewById(R.id.textVoice);
         tVAddress = findViewById(R.id.addressText);
         SharedPreferences mSettings = PreferenceManager.getDefaultSharedPreferences(this);
         editor = mSettings.edit();
         zoomValue = mSettings.getInt("Zoom", 16);
 
 //        String hardware = Build.HARDWARE;   // samsungexynos9810    angler
-//        utils.log(logID,"this phone model is " + phoneModel + " manu " + manufacturer + " hardware " + hardware);
+//        utils.log(logID,"this phone model is " + phoneModel);
 
         btnClear = findViewById(R.id.btnClear);
         btnClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                tvVoice = findViewById(R.id.textVoice);
                 tvVoice.setText("");
             }
         });
 
-        btnCamera = findViewById(R.id.btnCamera);
-        btnCamera.setOnClickListener(new View.OnClickListener() {
+        btnShot = findViewById(R.id.btnShot);
+        btnShot.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                btnCamera.setBackgroundColor(Color.MAGENTA);
+                btnShot.setBackgroundColor(Color.MAGENTA);
                 tVAddress.setBackgroundColor(Color.MAGENTA);
+                exitApp = false;
                 reactClick();
                 take_Picture();
             }
         });
-        ColorDrawable buttonColor = (ColorDrawable) btnCamera.getBackground();
+
+        btnShotExit = findViewById(R.id.btnShotExit);
+        btnShotExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                btnShotExit.setBackgroundColor(Color.MAGENTA);
+                tVAddress.setBackgroundColor(Color.MAGENTA);
+                exitApp = true;
+                reactClick();
+                take_Picture();
+            }
+        });
+        ColorDrawable buttonColor = (ColorDrawable) btnShot.getBackground();
         this.buttonBackColor = buttonColor.getColor();
 
         startCamera();
 
-        if (isNetworkAvailable()) {
-            ImageView mAudio = findViewById(R.id.btnSpeak);
-            mAudio.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-                    try {
-                        startActivityForResult(intent, 1234);
-                    } catch (ActivityNotFoundException a) {
-                        //
-                    }
-                }
-            });
-        } else {
-            Toast.makeText(getApplicationContext(), "Plese Connect to Internet", Toast.LENGTH_LONG).show();
-        }
+        ImageView mSpeak = findViewById(R.id.btnSpeak);
+        mSpeak.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sttMode = !sttMode;
+                ImageView iv = findViewById(R.id.btnSpeak);
+                iv.setImageResource(sttMode ? R.mipmap.micro_phone_off: R.mipmap.micro_phone_on);
+                if (sttMode)
+                    startGetVoice();
+            }
+        });
 
         ready_GoogleAPIClient();
         if (isNetworkAvailable()) {
@@ -197,10 +206,64 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(mContext,"No Network", Toast.LENGTH_LONG).show();;
             showCurrentLocation();
         }
+        tvVoice.setText("");
         utils.deleteOldLogFiles();
-        TextView tv = findViewById(R.id.textVoice);
-        tv.setText("");
     }
+
+    private void startGetVoice() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());    //데이터 설정
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 10);   //검색을 말한 결과를 보여주는 갯수
+
+        try {
+            startActivityForResult(intent, 1234);
+        } catch (ActivityNotFoundException a) {
+            //
+        }
+    }
+
+//    private void readyRecognition() {
+//
+//        SpeechRecognizer mRecognizer;
+//        Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);            //음성인식 intent생성
+//        i.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());    //데이터 설정
+//        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR");                            //음성인식 언어 설정
+//
+//        RecognitionListener listener = new RecognitionListener() {
+//            //입력 소리 변경 시
+//            @Override public void onRmsChanged(float rmsdB) {}
+//
+//
+//
+//            //음성 인식 결과 받음
+//            @Override public void onResults(Bundle results) {}
+//
+//            //음성 인식 준비가 되었으면
+//            @Override public void onReadyForSpeech(Bundle params) {}
+//
+//            //음성 입력이 끝났으면
+//            @Override public void onEndOfSpeech() {}
+//
+//            //에러가 발생하면
+//            @Override public void onError(int error) {}
+//
+//            @Override public void onBeginningOfSpeech() {}                            //입력이 시작되면
+//            @Override public void onPartialResults(Bundle partialResults) {}       //인식 결과의 일부가 유효할 때
+//
+//
+//
+//            //미래의 이벤트를 추가하기 위해 미리 예약되어진 함수
+//            @Override public void onEvent(int eventType, Bundle params) {}
+//            @Override public void onBufferReceived(byte[] buffer) {}                //더 많은 소리를 받을 때
+//
+//        };
+//        mRecognizer = SpeechRecognizer.createSpeechRecognizer(this);                //음성인식 객체
+//        mRecognizer.setRecognitionListener(listener);                                        //음성인식 리스너 등록
+//        mRecognizer.startListening(i);
+//    }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -221,6 +284,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void take_Picture() {
         mCamera.takePicture(null, null, rawCallback, jpegCallback); // null is for silent shot
+        if (exitApp) {
+            new Timer().schedule(new TimerTask() {
+                public void run() {
+                    mActivity.finishAffinity();
+                    android.os.Process.killProcess(android.os.Process.myPid());
+                    System.exit(0);
+                }
+            }, 2000);
+        }
     }
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
@@ -256,6 +328,7 @@ public class MainActivity extends AppCompatActivity {
             strPlace = strAddress;
             strAddress = "?";
         }
+        strVoice = tvVoice.getText().toString();
     }
 
     Camera.ShutterCallback shutterCallback = new Camera.ShutterCallback() {
@@ -288,7 +361,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String none) {
-//            Log.w("post", "Executed");
+            utils.log("post", "Executed");
             mCamera.stopPreview();
             mCamera.release();
             BuildImage buildImage = new BuildImage();
@@ -296,7 +369,8 @@ public class MainActivity extends AppCompatActivity {
             startCamera();
             strVoice = "";
             tVAddress.setBackgroundColor(addressBackColor);
-            btnCamera.setBackgroundColor(buttonBackColor);
+            btnShot.setBackgroundColor(buttonBackColor);
+
         }
     }
 
@@ -309,7 +383,7 @@ public class MainActivity extends AppCompatActivity {
     private class MyOnConnectionFailedListener implements GoogleApiClient.OnConnectionFailedListener {
         @Override
         public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-//            utils.log(logID,"#oF");
+            utils.log(logID,"#oF");
         }
     }
 
@@ -370,7 +444,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-//        utils.log(logID,"#oP");
+        utils.log(logID,"#oP");
     }
 
     public void showCurrentLocation() {
@@ -399,11 +473,18 @@ public class MainActivity extends AppCompatActivity {
         EditText et = findViewById(R.id.addressText);
         et.setText(text);
         et.setSelection(text.indexOf("\n"));
+        new Timer().schedule(new TimerTask() {
+            public void run() {
+//                readyRecognition();
+                sttMode = true;
+                startGetVoice();
+            }
+        }, 500);
     }
 
     public Location getGPSCord() {
 
-//        Log.w("gpscord called", "here");
+        utils.log("gpscord called", "here");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "ACCESS FINE LOCATION not allowed", Toast.LENGTH_LONG).show();
             return null;
@@ -504,6 +585,15 @@ public class MainActivity extends AppCompatActivity {
             TextView mVoice = findViewById(R.id.textVoice);
             strVoice = mVoice.getText().toString()+ " " + result.get(0);
             mVoice.setText(strVoice);
+                new Timer().schedule(new TimerTask() {
+                    public void run() {
+                        if (sttMode)
+                        startGetVoice();
+                    }
+                }, 1000);
+        }
+        else if (requestCode == 1234 && resultCode == 0) {
+            // speak canceled
         }
         else
             Toast.makeText(mContext, "Request Code:"+requestCode+", Result Code:"+resultCode+" not as expected", Toast.LENGTH_LONG).show();
