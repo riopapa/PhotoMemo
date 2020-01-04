@@ -18,6 +18,7 @@ import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.media.AudioManager;
 import android.media.ExifInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -50,13 +51,13 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.urrecliner.phovomemo.BuildBitMap.buildSignatureMap;
 import static com.urrecliner.phovomemo.Vars.bitMapCamera;
 import static com.urrecliner.phovomemo.Vars.cameraOrientation;
 import static com.urrecliner.phovomemo.Vars.currActivity;
@@ -66,13 +67,11 @@ import static com.urrecliner.phovomemo.Vars.mActivity;
 import static com.urrecliner.phovomemo.Vars.mCamera;
 import static com.urrecliner.phovomemo.Vars.mContext;
 import static com.urrecliner.phovomemo.Vars.nexus6P;
-import static com.urrecliner.phovomemo.Vars.nowTime;
-import static com.urrecliner.phovomemo.Vars.outFileName;
 import static com.urrecliner.phovomemo.Vars.phoneMake;
 import static com.urrecliner.phovomemo.Vars.phoneModel;
 import static com.urrecliner.phovomemo.Vars.phonePrefix;
+import static com.urrecliner.phovomemo.Vars.signatureMap;
 import static com.urrecliner.phovomemo.Vars.strAddress;
-import static com.urrecliner.phovomemo.Vars.strDateTime;
 import static com.urrecliner.phovomemo.Vars.strMapAddress;
 import static com.urrecliner.phovomemo.Vars.strMapPlace;
 import static com.urrecliner.phovomemo.Vars.strPlace;
@@ -90,22 +89,19 @@ public class MainActivity extends AppCompatActivity {
     private CameraPreview mCameraPreview;
     private String logID = "main";
 
-    SharedPreferences.Editor editor = null;
-
     private Sensor mAccelerometer;
     private Sensor mMagnetometer;
     private SensorManager mSensorManager;
     private DeviceOrientation deviceOrientation;
 
-    private Button btnShot, btnShotExit;
-    private ImageButton btnClear;
+    private Button btnShot;
     private int buttonBackColor;
     private boolean exitApp;
     private boolean sttMode;
 
     private TextView tVAddress;
     private int addressBackColor;
-
+    AudioManager audioManager = null;
     private TextView tvVoice;
 
     @Override
@@ -119,6 +115,10 @@ public class MainActivity extends AppCompatActivity {
             finish();
             return;
         }
+
+        audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+        audioManager.adjustVolume(AudioManager.ADJUST_MUTE, AudioManager.FLAG_PLAY_SOUND);
+
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -136,13 +136,12 @@ public class MainActivity extends AppCompatActivity {
         tvVoice = findViewById(R.id.textVoice);
         tVAddress = findViewById(R.id.addressText);
         SharedPreferences mSettings = PreferenceManager.getDefaultSharedPreferences(this);
-        editor = mSettings.edit();
         zoomValue = mSettings.getInt("Zoom", 16);
 
 //        String hardware = Build.HARDWARE;   // samsungexynos9810    angler
 //        utils.log(logID,"this phone model is " + phoneModel);
 
-        btnClear = findViewById(R.id.btnClear);
+        ImageButton btnClear = findViewById(R.id.btnClear);
         btnClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -162,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnShotExit = findViewById(R.id.btnShotExit);
+        final Button btnShotExit = findViewById(R.id.btnShotExit);
         btnShotExit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -208,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
         }
         tvVoice.setText("");
         utils.deleteOldLogFiles();
+        signatureMap = buildSignatureMap();
     }
 
     private void startGetVoice() {
@@ -224,46 +224,6 @@ public class MainActivity extends AppCompatActivity {
             //
         }
     }
-
-//    private void readyRecognition() {
-//
-//        SpeechRecognizer mRecognizer;
-//        Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);            //음성인식 intent생성
-//        i.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());    //데이터 설정
-//        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR");                            //음성인식 언어 설정
-//
-//        RecognitionListener listener = new RecognitionListener() {
-//            //입력 소리 변경 시
-//            @Override public void onRmsChanged(float rmsdB) {}
-//
-//
-//
-//            //음성 인식 결과 받음
-//            @Override public void onResults(Bundle results) {}
-//
-//            //음성 인식 준비가 되었으면
-//            @Override public void onReadyForSpeech(Bundle params) {}
-//
-//            //음성 입력이 끝났으면
-//            @Override public void onEndOfSpeech() {}
-//
-//            //에러가 발생하면
-//            @Override public void onError(int error) {}
-//
-//            @Override public void onBeginningOfSpeech() {}                            //입력이 시작되면
-//            @Override public void onPartialResults(Bundle partialResults) {}       //인식 결과의 일부가 유효할 때
-//
-//
-//
-//            //미래의 이벤트를 추가하기 위해 미리 예약되어진 함수
-//            @Override public void onEvent(int eventType, Bundle params) {}
-//            @Override public void onBufferReceived(byte[] buffer) {}                //더 많은 소리를 받을 때
-//
-//        };
-//        mRecognizer = SpeechRecognizer.createSpeechRecognizer(this);                //음성인식 객체
-//        mRecognizer.setRecognitionListener(listener);                                        //음성인식 리스너 등록
-//        mRecognizer.startListening(i);
-//    }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -287,11 +247,15 @@ public class MainActivity extends AppCompatActivity {
         if (exitApp) {
             new Timer().schedule(new TimerTask() {
                 public void run() {
+                    audioManager.adjustVolume(AudioManager.ADJUST_UNMUTE, AudioManager.FLAG_PLAY_SOUND);
                     mActivity.finishAffinity();
                     android.os.Process.killProcess(android.os.Process.myPid());
                     System.exit(0);
                 }
-            }, 2000);
+            }, 1000);
+        }
+        else {
+            startGetVoice();
         }
     }
 
@@ -322,8 +286,6 @@ public class MainActivity extends AppCompatActivity {
                 strPlace = " ";
             }
             strAddress = strAddress.substring(strAddress.indexOf("\n") + 1);
-            final SimpleDateFormat imgDateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.KOREA);
-            outFileName  = imgDateFormat.format(nowTime) + "_" + strPlace;
         } catch (Exception e) {
             strPlace = strAddress;
             strAddress = "?";
@@ -345,9 +307,9 @@ public class MainActivity extends AppCompatActivity {
 
     Camera.PictureCallback jpegCallback = new Camera.PictureCallback() {
         public void onPictureTaken(byte[] data, Camera camera) {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        bitMapCamera = BitmapFactory.decodeByteArray(data, 0, data.length, options);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            bitMapCamera = BitmapFactory.decodeByteArray(data, 0, data.length, options);
             new SaveImageTask().execute("");
             }
         };
@@ -364,8 +326,8 @@ public class MainActivity extends AppCompatActivity {
             utils.log("post", "Executed");
             mCamera.stopPreview();
             mCamera.release();
-            BuildImage buildImage = new BuildImage();
-            buildImage.makeOutMap();
+            BuildBitMap buildBitMap = new BuildBitMap();
+            buildBitMap.makeOutMap();
             startCamera();
             strVoice = "";
             tVAddress.setBackgroundColor(addressBackColor);
@@ -429,13 +391,11 @@ public class MainActivity extends AppCompatActivity {
         params.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
         for (Camera.Size size : params.getSupportedPictureSizes()) {
             float ratio= (float) size.width / (float) size.height;
-            if (ratio > 1.7) {  // force ratio to wider screen
-//                params.setPreviewSize(size.width, size.height);
+            if (ratio > 1.7) {
                 params.setPictureSize(size.width, size.height);
                 break;
             }
         }
-
         mCamera.setParameters(params);
         mCamera.startPreview();
         mCameraPreview.setCamera(mCamera);
@@ -475,11 +435,10 @@ public class MainActivity extends AppCompatActivity {
         et.setSelection(text.indexOf("\n"));
         new Timer().schedule(new TimerTask() {
             public void run() {
-//                readyRecognition();
                 sttMode = true;
                 startGetVoice();
             }
-        }, 500);
+        }, 300);
     }
 
     public Location getGPSCord() {
@@ -575,22 +534,18 @@ public class MainActivity extends AppCompatActivity {
             }
             mCamera.enableShutterSound(true);
             showCurrentLocation();
-            nowTime = System.currentTimeMillis();
-            final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("`yy/MM/dd HH:mm", Locale.ENGLISH);
-            strDateTime = dateTimeFormat.format(nowTime);
         }
         else if (requestCode == 1234 && resultCode == RESULT_OK) {
             ArrayList<String> result = data
                     .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-            TextView mVoice = findViewById(R.id.textVoice);
-            strVoice = mVoice.getText().toString()+ " " + result.get(0);
-            mVoice.setText(strVoice);
-                new Timer().schedule(new TimerTask() {
-                    public void run() {
-                        if (sttMode)
-                        startGetVoice();
-                    }
-                }, 1000);
+            strVoice = strVoice + result.get(0);
+            tvVoice.setText(strVoice);
+            new Timer().schedule(new TimerTask() {
+                public void run() {
+                    if (sttMode)
+                    startGetVoice();
+                }
+            }, 500);
         }
         else if (requestCode == 1234 && resultCode == 0) {
             // speak canceled

@@ -41,15 +41,14 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 
         mCamera = camera;
         if (mCamera != null) {
-            List<Size> localSizes = mCamera.getParameters().getSupportedPreviewSizes();
-            mSupportedPreviewSizes = localSizes;
+            mSupportedPreviewSizes= mCamera.getParameters().getSupportedPreviewSizes();
             requestLayout();
 
             Camera.Parameters params = mCamera.getParameters();
 
             List<String> focusModes = params.getSupportedFocusModes();
             if (focusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
-                // set the focus mode
+                // set the focus audioManager
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
                 // set Camera parameters
                 mCamera.setParameters(params);

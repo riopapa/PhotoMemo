@@ -25,57 +25,53 @@ import static com.urrecliner.phovomemo.Vars.latitude;
 import static com.urrecliner.phovomemo.Vars.longitude;
 import static com.urrecliner.phovomemo.Vars.mActivity;
 import static com.urrecliner.phovomemo.Vars.mContext;
-import static com.urrecliner.phovomemo.Vars.nowTime;
 import static com.urrecliner.phovomemo.Vars.phoneMake;
 import static com.urrecliner.phovomemo.Vars.phoneModel;
 import static com.urrecliner.phovomemo.Vars.phonePrefix;
+import static com.urrecliner.phovomemo.Vars.signatureMap;
 import static com.urrecliner.phovomemo.Vars.strAddress;
 import static com.urrecliner.phovomemo.Vars.strPlace;
 import static com.urrecliner.phovomemo.Vars.strVoice;
 import static com.urrecliner.phovomemo.Vars.utils;
 
 
-class BuildImage {
+class BuildBitMap {
 
     private String logID = "buildCameraImage";
+    private long nowTime;
+    private static final SimpleDateFormat sdfExif = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.ENGLISH);
+    private static final SimpleDateFormat sdfPhoto = new SimpleDateFormat("`yy/MM/dd HH:mm", Locale.ENGLISH);
+    private final SimpleDateFormat sdfFileName = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.KOREA);
 
     void makeOutMap() {
 
-        String timeStamp;
-        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("`yy/MM/dd HH:mm", Locale.ENGLISH);
-        timeStamp = dateTimeFormat.format(nowTime);
+        nowTime = System.currentTimeMillis();
+        String timeStamp = sdfPhoto.format(nowTime);
         int width = bitMapCamera.getWidth();
         int height = bitMapCamera.getHeight();
-
         if (cameraOrientation == 6 && width > height)
             bitMapCamera = utils.rotateBitMap(bitMapCamera, 90);
         if (cameraOrientation == 1 && width < height)
             bitMapCamera = utils.rotateBitMap(bitMapCamera, 90);
         if (cameraOrientation == 3)
             bitMapCamera = utils.rotateBitMap(bitMapCamera, 180);
-//
-//        width = bitMapCamera.getWidth();
-//        height = bitMapCamera.getHeight();
 
-        final SimpleDateFormat imgDateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.KOREA);
-        String outFileName = imgDateFormat.format(nowTime);
-
+        String outFileName = sdfFileName.format(nowTime);
         File newFile = new File(utils.getPublicCameraDirectory(), phonePrefix + outFileName + ".jpg");
         writeCameraFile(bitMapCamera, newFile);
         setNewFileExif(newFile);
         mActivity.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(newFile)));
 
-        Bitmap mergedMap = addSignature2Bitmaps(bitMapCamera, timeStamp);
+        Bitmap mergedMap = markDateLocSignature(bitMapCamera, timeStamp);
         nowTime += 50;
         String outText = (strVoice.length() > 10) ? strVoice.substring(0, 10) : strVoice;
-        String outFileName2 = imgDateFormat.format(nowTime) + "_" + strPlace + " (" + outText +")";
+        String outFileName2 = sdfFileName.format(nowTime) + "_" + strPlace + " (" + outText.trim() +")";
         File newFile2 = new File(utils.getPublicCameraDirectory(), phonePrefix + outFileName2 + " _ha.jpg");
         writeCameraFile(mergedMap, newFile2);
         setNewFileExif(newFile);
         mActivity.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(newFile2)));
+        strVoice = "";
     }
-
-    static final private SimpleDateFormat sdfHourMinSec = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.ENGLISH);
 
     private void setNewFileExif(File fileHa) {
         ExifInterface exifHa;
@@ -88,7 +84,7 @@ class BuildImage {
             exifHa.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, convertGPS(longitude));
             exifHa.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, longitudeRefGPS(longitude));
             exifHa.setAttribute(ExifInterface.TAG_ORIENTATION, "1");
-            exifHa.setAttribute(ExifInterface.TAG_DATETIME, sdfHourMinSec.format(nowTime));
+            exifHa.setAttribute(ExifInterface.TAG_DATETIME, sdfExif.format(nowTime));
             exifHa.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, "PhoVoMemo by riopapa");
             exifHa.saveAttributes();
         } catch (IOException e) {
@@ -116,7 +112,7 @@ class BuildImage {
         return degree + "/1," + minute + "/1," + second + "/10000";
     }
 
-    private Bitmap addSignature2Bitmaps(Bitmap photoMap, String dateTime) {
+    private Bitmap markDateLocSignature(Bitmap photoMap, String dateTime) {
 
         int width = photoMap.getWidth();
         int height = photoMap.getHeight();
@@ -128,14 +124,11 @@ class BuildImage {
         int yPos = height / 12;
         drawTextOnCanvas(canvas, dateTime, fontSize, xPos, yPos);
 
-        int sigSize = (width > height) ? height / 6 : width / 4;
-        Bitmap sigMap = BitmapFactory.decodeResource(mContext.getResources(), R.raw.signature_yellow_min);
-        sigMap = Bitmap.createScaledBitmap(sigMap, sigSize, sigSize, false);
+        int sigSize = (width + height) / 14;
+        Bitmap sigMap = Bitmap.createScaledBitmap(signatureMap, sigSize, sigSize, false);
         xPos = width - sigSize - width / 20;
         yPos = height / 20;
-        Paint sigPaint = new Paint();
-        sigPaint.setAlpha(60);
-        canvas.drawBitmap(sigMap, xPos, yPos, sigPaint);
+        canvas.drawBitmap(sigMap, xPos, yPos, null);
 
         if (strPlace.length() == 0) strPlace = "_";
         if (strVoice.length() == 0) strVoice = "_";
@@ -148,7 +141,7 @@ class BuildImage {
         yPos = drawTextOnCanvas(canvas, strPlace, fontSize, xPos, yPos);
         fontSize = fontSize * 15 / 10;
         yPos -= fontSize + fontSize / 4;
-        yPos  = drawTextOnCanvas(canvas, strVoice, fontSize, xPos, yPos);
+        drawTextOnCanvas(canvas, strVoice, fontSize, xPos, yPos);
         return newMap;
     }
 
@@ -207,4 +200,19 @@ class BuildImage {
         }
     }
 
+    static Bitmap buildSignatureMap() {
+        Bitmap sigMap;
+        File sigFile = new File (utils.getPackageDirectory(),"signature.png");
+        if (sigFile.exists()) {
+            sigMap = BitmapFactory.decodeFile(sigFile.toString(), null);
+        }
+        else
+            sigMap = BitmapFactory.decodeResource(mContext.getResources(), R.raw.signature);
+        Bitmap newBitmap = Bitmap.createBitmap(sigMap.getWidth(), sigMap.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(newBitmap);
+        Paint alphaPaint = new Paint();
+        alphaPaint.setAlpha(80);
+        canvas.drawBitmap(sigMap, 0, 0, alphaPaint);
+        return newBitmap;
+    }
 }

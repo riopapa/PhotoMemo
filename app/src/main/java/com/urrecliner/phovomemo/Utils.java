@@ -91,7 +91,7 @@ class Utils {
         }
     }
 
-    private File getPackageDirectory() {
+    File getPackageDirectory() {
         File directory = new File(Environment.getExternalStorageDirectory(), utils.getAppLabel(mContext));
         try {
             if (!directory.exists()) {
