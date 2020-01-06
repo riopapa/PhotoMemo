@@ -9,6 +9,7 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Environment;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -119,7 +120,7 @@ class BuildBitMap {
         Bitmap newMap = Bitmap.createBitmap(width, height, photoMap.getConfig());
         Canvas canvas = new Canvas(newMap);
         canvas.drawBitmap(photoMap, 0f, 0f, null);
-        int fontSize = (cameraOrientation == 1) ? height / 16 : width / 16;
+        int fontSize = (cameraOrientation == 1) ? height / 20 : width / 20;
         int xPos = (cameraOrientation == 1) ? width / 5 : width * 3 / 10;
         int yPos = height / 12;
         drawTextOnCanvas(canvas, dateTime, fontSize, xPos, yPos);
@@ -134,12 +135,12 @@ class BuildBitMap {
         if (strVoice.length() == 0) strVoice = "_";
         fontSize = (cameraOrientation == 1) ? width / 52 : width / 36;
         xPos = width / 2;
-        yPos = height - fontSize - fontSize;
+        yPos = height - fontSize - fontSize/2;
         yPos = drawTextOnCanvas(canvas, strAddress, fontSize, xPos, yPos);
-        fontSize = fontSize * 15 / 10;
-        yPos -= fontSize + fontSize / 4;
+        fontSize = fontSize * 16 / 10;
+        yPos -= fontSize + fontSize / 5;
         yPos = drawTextOnCanvas(canvas, strPlace, fontSize, xPos, yPos);
-        fontSize = fontSize * 15 / 10;
+        fontSize = fontSize * 10 / 10;
         yPos -= fontSize + fontSize / 4;
         drawTextOnCanvas(canvas, strVoice, fontSize, xPos, yPos);
         return newMap;
@@ -154,16 +155,16 @@ class BuildBitMap {
         int cWidth = canvas.getWidth() * 3 / 4;
         float tWidth = paint.measureText(text);
         int pos;
-        int d = fontSize / 16;
+        int d = fontSize / 14;
         if (tWidth > cWidth) {
-            utils.log("size","cWidth:"+cWidth+" tWidth:"+tWidth);
+//            utils.log("size","cWidth:"+cWidth+" tWidth:"+tWidth);
             int length = text.length() / 2;
             for (pos = length; pos < text.length(); pos++)
                 if (text.substring(pos,pos+1).equals(" "))
                     break;
             String text1 = text.substring(pos);
             drawTextMultiple(canvas, text1, xPos, yPos, d, paint);
-            yPos -= fontSize + fontSize / 6;
+            yPos -= fontSize + fontSize / 4;
             text1 = text.substring(0, pos);
             drawTextMultiple(canvas, text1, xPos, yPos, d, paint);
             return yPos;
@@ -175,6 +176,7 @@ class BuildBitMap {
 
     private void drawTextMultiple (Canvas canvas, String text, int xPos, int yPos, int d, Paint paint) {
         paint.setColor(Color.BLACK);
+        paint.setTypeface(mContext.getResources().getFont(R.font.nanumbarungothicbold));
         canvas.drawText(text, xPos - d, yPos - d, paint);
         canvas.drawText(text, xPos + d, yPos - d, paint);
         canvas.drawText(text, xPos - d, yPos + d, paint);
@@ -202,7 +204,7 @@ class BuildBitMap {
 
     static Bitmap buildSignatureMap() {
         Bitmap sigMap;
-        File sigFile = new File (utils.getPackageDirectory(),"signature.png");
+        File sigFile = new File (Environment.getExternalStorageDirectory(),"signature.png");
         if (sigFile.exists()) {
             sigMap = BitmapFactory.decodeFile(sigFile.toString(), null);
         }
@@ -211,7 +213,7 @@ class BuildBitMap {
         Bitmap newBitmap = Bitmap.createBitmap(sigMap.getWidth(), sigMap.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(newBitmap);
         Paint alphaPaint = new Paint();
-        alphaPaint.setAlpha(80);
+        alphaPaint.setAlpha(120);
         canvas.drawBitmap(sigMap, 0, 0, alphaPaint);
         return newBitmap;
     }

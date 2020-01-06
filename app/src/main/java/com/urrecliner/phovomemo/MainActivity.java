@@ -15,7 +15,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
-import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.media.AudioManager;
@@ -50,9 +49,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -75,7 +72,6 @@ import static com.urrecliner.phovomemo.Vars.strAddress;
 import static com.urrecliner.phovomemo.Vars.strMapAddress;
 import static com.urrecliner.phovomemo.Vars.strMapPlace;
 import static com.urrecliner.phovomemo.Vars.strPlace;
-import static com.urrecliner.phovomemo.Vars.strPosition;
 import static com.urrecliner.phovomemo.Vars.strVoice;
 import static com.urrecliner.phovomemo.Vars.utils;
 import static com.urrecliner.phovomemo.Vars.xPixel;
@@ -252,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
                     android.os.Process.killProcess(android.os.Process.myPid());
                     System.exit(0);
                 }
-            }, 1000);
+            }, 2000);
         }
         else {
             startGetVoice();
@@ -318,17 +314,17 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String ... data) {
+            mCamera.stopPreview();
+            mCamera.release();
+            BuildBitMap buildBitMap = new BuildBitMap();
+            buildBitMap.makeOutMap();
             return "";
         }
 
         @Override
         protected void onPostExecute(String none) {
-            utils.log("post", "Executed");
-            mCamera.stopPreview();
-            mCamera.release();
-            BuildBitMap buildBitMap = new BuildBitMap();
-            buildBitMap.makeOutMap();
             startCamera();
+            utils.log("post", "Executed");
             strVoice = "";
             tVAddress.setBackgroundColor(addressBackColor);
             btnShot.setBackgroundColor(buttonBackColor);
@@ -409,36 +405,33 @@ public class MainActivity extends AppCompatActivity {
 
     public void showCurrentLocation() {
 
-        double altitude;
+        double altitude = 0;
 
         Location location = getGPSCord();
-        if (location == null) {
-            strPosition = " ";
-        }
-        else {
+        if (location != null) {
             latitude = location.getLatitude();
             longitude = location.getLongitude();
             altitude = location.getAltitude();
-            strPosition = String.format(Locale.ENGLISH,"%.5f ; %.5f ; %.2f", latitude, longitude, altitude);
         }
 
         if (isNetworkAvailable()) {
             Geocoder geocoder = new Geocoder(this, Locale.KOREA);
-            strAddress = getAddressByGPSValue(geocoder, latitude, longitude);
+            strAddress = GPS2Address.get(geocoder, latitude, longitude, altitude);
         }
         else {
-            strAddress = " ";
+            strAddress = "_";
         }
         String text = ((strMapPlace == null) ? " ":strMapPlace) + "\n" + ((strMapAddress == null) ? strAddress:strMapAddress);
         EditText et = findViewById(R.id.addressText);
         et.setText(text);
         et.setSelection(text.indexOf("\n"));
+        tvVoice.setText(strVoice);
         new Timer().schedule(new TimerTask() {
             public void run() {
                 sttMode = true;
                 startGetVoice();
             }
-        }, 300);
+        }, 1000);
     }
 
     public Location getGPSCord() {
@@ -453,72 +446,6 @@ public class MainActivity extends AppCompatActivity {
         return lastLocation;
     }
 
-    final String noInfo = "No_Info";
-    public String getAddressByGPSValue(Geocoder geocoder, double latitude, double longitude) {
-
-        try {
-            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
-            if (addresses.size() > 0) {
-                Address address = addresses.get(0);
-                String Feature = address.getFeatureName();
-                String Thorough = address.getThoroughfare();
-                String Locality = address.getLocality();
-                String SubLocality = address.getSubLocality();
-                String Country = address.getCountryName();  // or getCountryName()
-                String CountryCode = address.getCountryCode();
-                String SState = address.getSubAdminArea();
-                String State = address.getAdminArea();
-                Feature = (Feature == null) ? noInfo : Feature;
-                Thorough = (Thorough == null) ? noInfo : Thorough;  // Kakakaua Avernue
-                SubLocality = (SubLocality == null) ? noInfo : SubLocality; // 분당구
-                Locality = (Locality == null) ? noInfo : Locality;  // Honolulu, 성남시
-                SState = (SState == null) ? noInfo : SState;
-                State = (State == null) ? noInfo : State;   // Hawaii, 경기도
-                if (Country == null && CountryCode == "KR")
-                    Country = noInfo; // United States, 대한민국
-
-                return MergedAddress(Feature, Thorough, SubLocality, Locality, State, SState, Country, CountryCode);
-            } else {
-                return "\nnull address text";
-            }
-        } catch (IOException e) {
-            Toast.makeText(this, "No Address List", Toast.LENGTH_LONG).show();
-            utils.log(logID,"#IOE " + e.toString());
-            return "\n" + strPosition;
-        }
-    }
-
-    public String MergedAddress(String Feature, String Thorough, String SubLocality, String Locality, String SState, String State, String Country, String CountryCode) {
-
-        if (Thorough.equals(Feature)) Feature = noInfo;
-        if (SubLocality.equals(Feature)) Feature = noInfo;
-        if (SubLocality.equals(Thorough)) Thorough = noInfo;
-        if (Locality.equals(Thorough)) Thorough = noInfo;
-        if (Locality.equals(SubLocality)) SubLocality = noInfo;
-        if (SState.equals(Locality)) Locality = noInfo;
-        if (State.equals(SState)) SState = noInfo;
-
-        String addressMerged = "";
-        if (CountryCode.equals("KR")) {
-            if (!State.equals(noInfo)) addressMerged += " " + State;
-            if (!SState.equals(noInfo)) addressMerged += " " + SState;
-            if (!Locality.equals(noInfo)) addressMerged += " " + Locality;
-            if (!SubLocality.equals(noInfo)) addressMerged += " " + SubLocality;
-            if (!Thorough.equals(noInfo)) addressMerged += " " + Thorough;
-            if (!Feature.equals(noInfo)) addressMerged += " " + Feature;
-        }
-        else {
-            if (!Feature.equals(noInfo)) addressMerged += " " + Feature;
-            if (!Thorough.equals(noInfo)) addressMerged += " " + Thorough;
-            if (!SubLocality.equals(noInfo)) addressMerged += " " + SubLocality;
-            if (!Locality.equals(noInfo)) addressMerged += " " + Locality;
-            if (!SState.equals(noInfo)) addressMerged += " " + SState;
-            if (!State.equals(noInfo)) addressMerged += " " + State;
-            addressMerged += " " + Country;
-        }
-        return addressMerged;
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
@@ -527,7 +454,8 @@ public class MainActivity extends AppCompatActivity {
                 Place place = PlacePicker.getPlace(this, data);
                 strMapPlace = place.getName().toString();
                 String text = place.getAddress().toString();
-                strMapAddress = (text.length() > 10) ? text : null;
+                if (text.length()> 5)
+                    strMapAddress = text.replace("대한민국 ","");
             } else if (resultCode == RESULT_CANCELED) {
                 strMapPlace = null;
                 strMapAddress = null;
@@ -545,7 +473,7 @@ public class MainActivity extends AppCompatActivity {
                     if (sttMode)
                     startGetVoice();
                 }
-            }, 500);
+            }, 1000);
         }
         else if (requestCode == 1234 && resultCode == 0) {
             // speak canceled

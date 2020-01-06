@@ -1,30 +1,38 @@
 
-# SaveHere
+# PhoVo Memo (Photo Voice Memo)
 
-With this application, you can memorize where you were. 
+With this application, you can keep some memo, place and address in photo. It may be useful to record food name, taste.. in some restaurant.   
 
-It saves current position into Camera folder as screen shot, so that you may refer the place later.
+It saves two photo, one is photo you shoted and the other is adding memo you spoke, place name, and address, so that you may refer later.
 
 Information in screen shots are
-- google map place and address or your text input, e.g. place name, shop name,.. to remember
-- GPS coordinates ()
+- google map place and address (you may change after gathering from google 
 - screen shot date and time (local time)
+- some memo spoken by you just before taking photo
 
 This application is for those who travels around the world and wants to record where he/she was. By capturing you can review photo with screen shot in time sequenced between photos.
 
 ## Permission Required
 
-- WRITE_EXTERNAL_STORAGE (save captured image)
-- ACCESS_FINE_LOCATION (get GPS information)
-For simplicity, I did not fully implement the following permission process
+``
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+``
 
-These permission should be applied by yourself.
+These permission should be applied by yourself thru android setting.
 
 ## Source in github
 
 Application source can be downloaded from [my github][1].
 
-[1]: https://github.com/riopapa/SaveHere
+[1]: https://github.com/riopapa/PhovoMemo
 
 ## Screenshots
 
@@ -42,31 +50,14 @@ Google Map shot with location information<br>File name in DCIM has place name al
 
 ## How to use
 
-1. Run this program, and it shows google map and nearby place list.
+1. Run this program, and it shows google map and nearby place list, so select exact place name.
 
-2. You may select one from the list or press cancel button to input place name by yourself.
+2. Google voice detecting will be automatically prompted until you turn it off with <img src="./app/src/main/res/mipmap-xxhdpi/micro_phone_off.png" width="20" height="20" alt="micro_phone_off"/> You turn it on by pressing <img src="./app/src/main/res/mipmap-xxhdpi/micro_phone_on.png" width="20" height="20" alt="micro_phone_on"/> 
 
-If you selected the place name, it will be shown in screen with address of it google maps API has given.
-
-Or if you have pressed cancel button, address given by google GPS info will be shown in screen with blank first line. And then you may enter place name as you want to.
-
-You have three options
-
-- Camera and Map shot : Create photo and map
-- Camera shot : Create photo
-- Map shot : Create map
-
-### Optional functions
-
-- slide bar : to adjust google map scale (higher value is more zoomed-in), scale will be saved for next use
-- Timer : if clicked, screen shot will be after 10 seconds of camera and/or map button
+3. ##SHOT## button will save photo and photo with info and will stay for next shot, ##SHOT & EXIT## will save photos and exit application.
 
 ## Comments
 
 - Android SDK API 26 or above 
-- Thanks to [google sample in github][2] for screen shot
-
-
-[2]: https://github.com/googlesamples/android-ScreenCapture
-
+- Google SST language setting is not included, you can set it via google setting
 
