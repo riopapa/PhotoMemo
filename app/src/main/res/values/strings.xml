@@ -14,5 +14,6 @@
     <string name="map_scale">map scale</string>
     <string name="todo">TODO</string>
     <string name="date_time">`20/12/31 19:24</string>
+    <string name="voice_hint">Press Voice Button to Record</string>
 
 </resources>
