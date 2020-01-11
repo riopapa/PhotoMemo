@@ -32,6 +32,7 @@ import static com.urrecliner.phovomemo.Vars.phonePrefix;
 import static com.urrecliner.phovomemo.Vars.signatureMap;
 import static com.urrecliner.phovomemo.Vars.strAddress;
 import static com.urrecliner.phovomemo.Vars.strPlace;
+import static com.urrecliner.phovomemo.Vars.strPosition;
 import static com.urrecliner.phovomemo.Vars.strVoice;
 import static com.urrecliner.phovomemo.Vars.utils;
 
@@ -120,27 +121,36 @@ class BuildBitMap {
         Bitmap newMap = Bitmap.createBitmap(width, height, photoMap.getConfig());
         Canvas canvas = new Canvas(newMap);
         canvas.drawBitmap(photoMap, 0f, 0f, null);
-        int fontSize = (cameraOrientation == 1) ? height / 20 : width / 20;
-        int xPos = (cameraOrientation == 1) ? width / 5 : width * 3 / 10;
-        int yPos = height / 12;
+        int fontSize = height / 20;
+        int xPos = width / 6;
+        int yPos = height / 10;
+        if (cameraOrientation != 1) {
+            fontSize = width / 20;
+            xPos = width / 5;
+            yPos = height / 8;
+        }
         drawTextOnCanvas(canvas, dateTime, fontSize, xPos, yPos);
 
         int sigSize = (width + height) / 14;
         Bitmap sigMap = Bitmap.createScaledBitmap(signatureMap, sigSize, sigSize, false);
         xPos = width - sigSize - width / 20;
-        yPos = height / 20;
+        yPos = yPos - sigSize / 4;
         canvas.drawBitmap(sigMap, xPos, yPos, null);
 
+        if (strPosition.length() == 0) strPosition = "_";
         if (strPlace.length() == 0) strPlace = "_";
         if (strVoice.length() == 0) strVoice = "_";
-        fontSize = (cameraOrientation == 1) ? width / 52 : width / 36;
         xPos = width / 2;
-        yPos = height - fontSize - fontSize/2;
+        fontSize = (cameraOrientation == 1) ? width / 54 : width / 32;
+        yPos = height - fontSize - fontSize / 2;
+        yPos = drawTextOnCanvas(canvas, strPosition, fontSize, xPos, yPos);
+        fontSize = fontSize * 12 / 10;
+        yPos -= fontSize + fontSize / 5;
         yPos = drawTextOnCanvas(canvas, strAddress, fontSize, xPos, yPos);
-        fontSize = fontSize * 16 / 10;
+        fontSize = fontSize * 14 / 10;
         yPos -= fontSize + fontSize / 5;
         yPos = drawTextOnCanvas(canvas, strPlace, fontSize, xPos, yPos);
-        fontSize = fontSize * 10 / 10;
+        fontSize = fontSize * 12 / 10;
         yPos -= fontSize + fontSize / 4;
         drawTextOnCanvas(canvas, strVoice, fontSize, xPos, yPos);
         return newMap;
@@ -176,7 +186,7 @@ class BuildBitMap {
 
     private void drawTextMultiple (Canvas canvas, String text, int xPos, int yPos, int d, Paint paint) {
         paint.setColor(Color.BLACK);
-        paint.setTypeface(mContext.getResources().getFont(R.font.nanumbarungothicbold));
+        paint.setTypeface(mContext.getResources().getFont(R.font.nanumbarungothic));
         canvas.drawText(text, xPos - d, yPos - d, paint);
         canvas.drawText(text, xPos + d, yPos - d, paint);
         canvas.drawText(text, xPos - d, yPos + d, paint);

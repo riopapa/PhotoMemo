@@ -3,5 +3,5 @@
     <font
         android:fontStyle = "normal"
         android:fontWeight = "300"
-        android:font = "@font/nanumbarungothicbold"/>
+        android:font = "@font/nanumbarungothic"/>
 </font-family>

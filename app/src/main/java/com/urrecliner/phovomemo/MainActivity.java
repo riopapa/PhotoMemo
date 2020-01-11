@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.speech.RecognizerIntent;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.SparseIntArray;
@@ -72,6 +73,7 @@ import static com.urrecliner.phovomemo.Vars.strAddress;
 import static com.urrecliner.phovomemo.Vars.strMapAddress;
 import static com.urrecliner.phovomemo.Vars.strMapPlace;
 import static com.urrecliner.phovomemo.Vars.strPlace;
+import static com.urrecliner.phovomemo.Vars.strPosition;
 import static com.urrecliner.phovomemo.Vars.strVoice;
 import static com.urrecliner.phovomemo.Vars.utils;
 import static com.urrecliner.phovomemo.Vars.xPixel;
@@ -82,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
     private GoogleApiClient mGoogleApiClient;
     private final static int PLACE_PICKER_REQUEST = 1;
+    private final static int VOICE_RECOGNISE = 1234;
     private CameraPreview mCameraPreview;
     private String logID = "main";
 
@@ -149,11 +152,15 @@ public class MainActivity extends AppCompatActivity {
         btnShot.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                btnShot.setBackgroundColor(Color.MAGENTA);
-                tVAddress.setBackgroundColor(Color.MAGENTA);
-                exitApp = false;
-                reactClick();
-                take_Picture();
+                if (tvVoice.getText().toString().length() > 1) {
+                    btnShot.setBackgroundColor(Color.MAGENTA);
+                    tVAddress.setBackgroundColor(Color.MAGENTA);
+                    exitApp = false;
+                    reactClick();
+                    take_Picture();
+                }
+                else
+                    Toast.makeText(mContext,"No Voice Text", Toast.LENGTH_LONG).show();
             }
         });
 
@@ -161,11 +168,15 @@ public class MainActivity extends AppCompatActivity {
         btnShotExit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                btnShotExit.setBackgroundColor(Color.MAGENTA);
-                tVAddress.setBackgroundColor(Color.MAGENTA);
-                exitApp = true;
-                reactClick();
-                take_Picture();
+                if (tvVoice.getText().toString().length() > 1) {
+                    btnShotExit.setBackgroundColor(Color.MAGENTA);
+                    tVAddress.setBackgroundColor(Color.MAGENTA);
+                    exitApp = true;
+                    reactClick();
+                    take_Picture();
+                }
+                else
+                    Toast.makeText(mContext,"No Voice Text", Toast.LENGTH_LONG).show();
             }
         });
         ColorDrawable buttonColor = (ColorDrawable) btnShot.getBackground();
@@ -202,8 +213,17 @@ public class MainActivity extends AppCompatActivity {
             showCurrentLocation();
         }
         tvVoice.setText("");
-        utils.deleteOldLogFiles();
-        signatureMap = buildSignatureMap();
+        final View v = findViewById(R.id.frame);
+        v.post(new Runnable() {
+            @Override
+            public void run() {
+                ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) v.getLayoutParams();
+                lp.width = lp.height * 10 / 17;
+                v.setLayoutParams(lp);
+                utils.deleteOldLogFiles();
+                signatureMap = buildSignatureMap();
+            }
+        });
     }
 
     private void startGetVoice() {
@@ -215,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 10);   //검색을 말한 결과를 보여주는 갯수
 
         try {
-            startActivityForResult(intent, 1234);
+            startActivityForResult(intent, VOICE_RECOGNISE);
         } catch (ActivityNotFoundException a) {
             //
         }
@@ -248,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
                     android.os.Process.killProcess(android.os.Process.myPid());
                     System.exit(0);
                 }
-            }, 2000);
+            }, 3000);
         }
         else {
             startGetVoice();
@@ -287,6 +307,7 @@ public class MainActivity extends AppCompatActivity {
             strAddress = "?";
         }
         strVoice = tvVoice.getText().toString();
+        tvVoice.setText("");
     }
 
     Camera.ShutterCallback shutterCallback = new Camera.ShutterCallback() {
@@ -328,7 +349,6 @@ public class MainActivity extends AppCompatActivity {
             strVoice = "";
             tVAddress.setBackgroundColor(addressBackColor);
             btnShot.setBackgroundColor(buttonBackColor);
-
         }
     }
 
@@ -405,18 +425,17 @@ public class MainActivity extends AppCompatActivity {
 
     public void showCurrentLocation() {
 
-        double altitude = 0;
-
         Location location = getGPSCord();
         if (location != null) {
             latitude = location.getLatitude();
             longitude = location.getLongitude();
-            altitude = location.getAltitude();
+            double altitude = location.getAltitude();
+            strPosition = String.format(Locale.ENGLISH, "%.5f ; %.5f ; %.2f", latitude, longitude, altitude);
         }
 
         if (isNetworkAvailable()) {
             Geocoder geocoder = new Geocoder(this, Locale.KOREA);
-            strAddress = GPS2Address.get(geocoder, latitude, longitude, altitude);
+            strAddress = GPS2Address.get(geocoder, latitude, longitude);
         }
         else {
             strAddress = "_";
@@ -449,38 +468,38 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        if (requestCode == PLACE_PICKER_REQUEST) {
-            if (resultCode == RESULT_OK) {  // user picked up place within the google map list
-                Place place = PlacePicker.getPlace(this, data);
-                strMapPlace = place.getName().toString();
-                String text = place.getAddress().toString();
-                if (text.length()> 5)
-                    strMapAddress = text.replace("대한민국 ","");
-            } else if (resultCode == RESULT_CANCELED) {
-                strMapPlace = null;
-                strMapAddress = null;
-            }
-            mCamera.enableShutterSound(true);
-            showCurrentLocation();
-        }
-        else if (requestCode == 1234 && resultCode == RESULT_OK) {
-            ArrayList<String> result = data
-                    .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-            strVoice = strVoice + result.get(0);
-            tvVoice.setText(strVoice);
-            new Timer().schedule(new TimerTask() {
-                public void run() {
-                    if (sttMode)
-                    startGetVoice();
+        switch (requestCode) {
+            case PLACE_PICKER_REQUEST:
+                if (resultCode == RESULT_OK) {  // user picked up place within the google map list
+                    Place place = PlacePicker.getPlace(this, data);
+                    strMapPlace = place.getName().toString();
+                    String text = place.getAddress().toString();
+                    if (text.length() > 5)
+                        strMapAddress = text.replace("대한민국 ", "");
+                } else if (resultCode == RESULT_CANCELED) {
+                    strMapPlace = null;
+                    strMapAddress = null;
                 }
-            }, 1000);
+                mCamera.enableShutterSound(true);
+                showCurrentLocation();
+                break;
+            case VOICE_RECOGNISE:
+                if (resultCode == RESULT_OK) {
+                    ArrayList<String> result = data
+                            .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    strVoice = strVoice + result.get(0);
+                    tvVoice.setText(strVoice);
+                    new Timer().schedule(new TimerTask() {
+                        public void run() {
+                            if (sttMode)
+                                startGetVoice();
+                        }
+                    }, 1000);
+                }
+                break;
+            default:
+                Toast.makeText(mContext, "Request Code:" + requestCode + ", Result Code:" + resultCode + " not as expected", Toast.LENGTH_LONG).show();
         }
-        else if (requestCode == 1234 && resultCode == 0) {
-            // speak canceled
-        }
-        else
-            Toast.makeText(mContext, "Request Code:"+requestCode+", Result Code:"+resultCode+" not as expected", Toast.LENGTH_LONG).show();
-
     }
 
     private boolean isNetworkAvailable() {

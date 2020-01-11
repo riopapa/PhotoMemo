@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.os.Environment;
 import android.util.Log;
-import android.view.View;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -20,11 +19,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import static com.urrecliner.phovomemo.Vars.mContext;
-import static com.urrecliner.phovomemo.Vars.outFileName;
-import static com.urrecliner.phovomemo.Vars.phonePrefix;
 import static com.urrecliner.phovomemo.Vars.utils;
-import static com.urrecliner.phovomemo.Vars.xPixel;
-import static com.urrecliner.phovomemo.Vars.yPixel;
 
 class Utils {
 
@@ -116,27 +111,6 @@ class Utils {
             return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
     }
 
-    File captureMapScreen(View view) {
-
-        utils.log(logID, "capture screen ///");
-
-        if (xPixel < yPixel) {
-            int t = xPixel; xPixel = yPixel; yPixel = t;
-        }
-        view.setDrawingCacheEnabled(true);
-        view.buildDrawingCache();
-        Bitmap screenBitmap = view.getDrawingCache();
-        assert screenBitmap != null;
-        int width = screenBitmap.getWidth();
-        int height = screenBitmap.getHeight();
-        if (xPixel < width && yPixel <= height)
-            screenBitmap = Bitmap.createBitmap(screenBitmap, 0, 0, xPixel, yPixel);  // remove right actiobar white area
-
-        String fileName = phonePrefix + outFileName + "__ha.jpg";
-
-        return bitmap2File (fileName, screenBitmap);
-    }
-
     File bitmap2File (String fileName, Bitmap outMap) {
         File directory = getPublicCameraDirectory();
         File file = new File(directory, fileName);
@@ -151,40 +125,6 @@ class Utils {
         }
         return file;
     }
-
-//    void setPhotoTag(File file) {
-//        SimpleDateFormat jpegTimeFormat = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.ENGLISH);
-//
-//        try {
-//            ExifInterface exif = new ExifInterface(file.getAbsolutePath());
-//            exif.setAttribute(ExifInterface.TAG_ORIENTATION, "1");
-//            exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE,convertGpsToDMS(latitude));
-//            exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF,(latitude > 0) ? "N":"S");
-//            exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, convertGpsToDMS(longitude));
-//            exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF,(longitude > 0) ? "E":"W");
-//            exif.setAttribute(ExifInterface.TAG_USER_COMMENT, "Created by riopapa");
-//            exif.setAttribute(ExifInterface.TAG_MAKE, phoneMake);
-//            exif.setAttribute(ExifInterface.TAG_MODEL, phoneModel);
-//            exif.setAttribute(ExifInterface.TAG_DATETIME, jpegTimeFormat.format(nowTime));
-//            exif.saveAttributes();
-//        } catch (IOException e) {
-//            utils.log(logID,"EXIF ioException\n"+e.toString());
-//        }
-//    }
-
-//    synchronized private static String convertGpsToDMS(double latitude) {
-//        StringBuilder sb = new StringBuilder(30);
-//        latitude=Math.abs(latitude);
-//        int degree = (int) latitude;
-//        latitude *= 60;
-//        latitude -= (degree * 60.0d);
-//        int minute = (int) latitude;
-//        latitude *= 60;
-//        latitude -= (minute * 60.0d);
-//        float second = (float) latitude * 1000;
-//
-//        return degree+"/1,"+minute+"/1,"+second+"/1000";
-//    }
 
     void deleteOldLogFiles() {
 
@@ -215,22 +155,5 @@ class Utils {
     private File[] getFilesList(File fullPath) {
         return fullPath.listFiles();
     }
-
-//    public Bitmap getResizedBitmap(Bitmap bm, int newWidth, int newHeight) {
-//        int width = bm.getWidth();
-//        int height = bm.getHeight();
-//        float scaleWidth = ((float) newWidth) / width;
-//        float scaleHeight = ((float) newHeight) / height;
-//        // CREATE A MATRIX FOR THE MANIPULATION
-//        Matrix matrix = new Matrix();
-//        // RESIZE THE BIT MAP
-//        matrix.postScale(scaleWidth, scaleHeight);
-//
-//        // "RECREATE" THE NEW BITMAP
-//        Bitmap resizedBitmap = Bitmap.createBitmap(
-//                bm, 0, 0, width, height, matrix, false);
-////        bm.recycle();
-//        return resizedBitmap;
-//    }
 
 }

@@ -5,12 +5,11 @@ import android.location.Geocoder;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 
 public class GPS2Address {
 
     final static String noInfo = "No_Info";
-    static String get(Geocoder geocoder, double latitude, double longitude, double altitude) {
+    static String get(Geocoder geocoder, double latitude, double longitude) {
 
         try {
             List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
@@ -38,9 +37,10 @@ public class GPS2Address {
                 return "\nnull address text";
             }
         } catch (IOException e) {
-            return "\n" + String.format(Locale.ENGLISH,"%.5f ; %.5f ; %.2f", latitude, longitude, altitude);
+            return "\nNo Address Found";
         }
     }
+
 
     private static String MergedAddress(String Feature, String Thorough, String SubLocality, String Locality, String SState, String State, String Country, String CountryCode) {
 
