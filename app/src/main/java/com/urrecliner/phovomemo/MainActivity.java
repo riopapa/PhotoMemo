@@ -1,8 +1,10 @@
 package com.urrecliner.phovomemo;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -110,10 +112,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         currActivity =  this.getClass().getSimpleName();
         mContext = getApplicationContext();
-        if (!AccessPermission.isPermissionOK(getApplicationContext(), this)) {
-            finish();
-            return;
-        }
+        askPermission();
 
         audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
         audioManager.adjustVolume(AudioManager.ADJUST_MUTE, AudioManager.FLAG_PLAY_SOUND);
@@ -417,12 +416,6 @@ public class MainActivity extends AppCompatActivity {
         mCameraPreview.setCamera(mCamera);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        utils.log(logID,"#oP");
-    }
-
     public void showCurrentLocation() {
 
         Location location = getGPSCord();
@@ -515,4 +508,75 @@ public class MainActivity extends AppCompatActivity {
         mSensorManager.registerListener(deviceOrientation.getEventListener(), mAccelerometer, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(deviceOrientation.getEventListener(), mMagnetometer, SensorManager.SENSOR_DELAY_UI);
     }
+
+
+    // ↓ ↓ ↓ P E R M I S S I O N    RELATED /////// ↓ ↓ ↓ ↓
+    ArrayList<String> permissions = new ArrayList<>();
+    private final static int ALL_PERMISSIONS_RESULT = 101;
+    ArrayList<String> permissionsToRequest;
+    ArrayList<String> permissionsRejected = new ArrayList<>();
+
+    private void askPermission() {
+        permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        permissions.add(Manifest.permission.INTERNET);
+        permissions.add(Manifest.permission.RECORD_AUDIO);
+        permissions.add(Manifest.permission.ACCESS_NETWORK_STATE);
+        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        permissions.add(Manifest.permission.CAMERA);
+        permissions.add(Manifest.permission.MODIFY_AUDIO_SETTINGS);
+        permissionsToRequest = findUnAskedPermissions(permissions);
+        if (permissionsToRequest.size() != 0) {
+            requestPermissions(permissionsToRequest.toArray(new String[0]),
+//            requestPermissions(permissionsToRequest.toArray(new String[permissionsToRequest.size()]),
+                    ALL_PERMISSIONS_RESULT);
+        }
+    }
+
+    private ArrayList findUnAskedPermissions(@NonNull ArrayList<String> wanted) {
+        ArrayList <String> result = new ArrayList<String>();
+        for (String perm : wanted) if (hasPermission(perm)) result.add(perm);
+        return result;
+    }
+    private boolean hasPermission(@NonNull String permission) {
+        return (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == ALL_PERMISSIONS_RESULT) {
+            for (String perms : permissionsToRequest) {
+                if (hasPermission(perms)) {
+                    permissionsRejected.add(perms);
+                }
+            }
+            if (permissionsRejected.size() > 0) {
+                if (shouldShowRequestPermissionRationale(permissionsRejected.get(0))) {
+                    String msg = "These permissions are mandatory for the application. Please allow access.";
+                    showDialog(msg);
+                }
+            }
+//            else
+//                Toast.makeText(mContext, "Permissions not granted.", Toast.LENGTH_LONG).show();
+        }
+    }
+    private void showDialog(String msg) {
+        showMessageOKCancel(msg,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        requestPermissions(permissionsRejected.toArray(
+                                new String[0]), ALL_PERMISSIONS_RESULT);
+                    }
+                });
+    }
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(mActivity)
+                .setMessage(message)
+                .setPositiveButton("OK", okListener)
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
+    }
+// ↑ ↑ ↑ ↑ P E R M I S S I O N    RELATED /////// ↑ ↑ ↑
+
 }
