@@ -1,4 +1,4 @@
-package com.urrecliner.phovomemo;
+package com.urrecliner.photomemo;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -20,21 +20,21 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-import static com.urrecliner.phovomemo.Vars.bitMapCamera;
-import static com.urrecliner.phovomemo.Vars.cameraOrientation;
-import static com.urrecliner.phovomemo.Vars.latitude;
-import static com.urrecliner.phovomemo.Vars.longitude;
-import static com.urrecliner.phovomemo.Vars.mActivity;
-import static com.urrecliner.phovomemo.Vars.mContext;
-import static com.urrecliner.phovomemo.Vars.phoneMake;
-import static com.urrecliner.phovomemo.Vars.phoneModel;
-import static com.urrecliner.phovomemo.Vars.phonePrefix;
-import static com.urrecliner.phovomemo.Vars.signatureMap;
-import static com.urrecliner.phovomemo.Vars.strAddress;
-import static com.urrecliner.phovomemo.Vars.strPlace;
-import static com.urrecliner.phovomemo.Vars.strPosition;
-import static com.urrecliner.phovomemo.Vars.strVoice;
-import static com.urrecliner.phovomemo.Vars.utils;
+import static com.urrecliner.photomemo.Vars.bitMapCamera;
+import static com.urrecliner.photomemo.Vars.cameraOrientation;
+import static com.urrecliner.photomemo.Vars.latitude;
+import static com.urrecliner.photomemo.Vars.longitude;
+import static com.urrecliner.photomemo.Vars.mActivity;
+import static com.urrecliner.photomemo.Vars.mContext;
+import static com.urrecliner.photomemo.Vars.phoneMake;
+import static com.urrecliner.photomemo.Vars.phoneModel;
+import static com.urrecliner.photomemo.Vars.phonePrefix;
+import static com.urrecliner.photomemo.Vars.signatureMap;
+import static com.urrecliner.photomemo.Vars.strAddress;
+import static com.urrecliner.photomemo.Vars.strPlace;
+import static com.urrecliner.photomemo.Vars.strPosition;
+import static com.urrecliner.photomemo.Vars.strVoice;
+import static com.urrecliner.photomemo.Vars.utils;
 
 
 class BuildBitMap {
@@ -87,7 +87,7 @@ class BuildBitMap {
             exifHa.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, longitudeRefGPS(longitude));
             exifHa.setAttribute(ExifInterface.TAG_ORIENTATION, "1");
             exifHa.setAttribute(ExifInterface.TAG_DATETIME, sdfExif.format(nowTime));
-            exifHa.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, "PhoVoMemo by riopapa");
+            exifHa.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, "photomemo by riopapa");
             exifHa.saveAttributes();
         } catch (IOException e) {
             e.printStackTrace();

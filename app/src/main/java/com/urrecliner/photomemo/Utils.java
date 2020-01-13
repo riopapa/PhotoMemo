@@ -1,4 +1,4 @@
-package com.urrecliner.phovomemo;
+package com.urrecliner.photomemo;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -18,8 +18,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import static com.urrecliner.phovomemo.Vars.mContext;
-import static com.urrecliner.phovomemo.Vars.utils;
+import static com.urrecliner.photomemo.Vars.mContext;
+import static com.urrecliner.photomemo.Vars.utils;
 
 class Utils {
 

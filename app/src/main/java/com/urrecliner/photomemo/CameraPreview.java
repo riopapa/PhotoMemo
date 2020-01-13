@@ -1,4 +1,4 @@
-package com.urrecliner.phovomemo;
+package com.urrecliner.photomemo;
 
 import android.content.Context;
 import android.hardware.Camera;
@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import java.io.IOException;
 import java.util.List;
 
-import static com.urrecliner.phovomemo.Vars.utils;
+import static com.urrecliner.photomemo.Vars.utils;
 
 
 class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {

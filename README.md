@@ -32,7 +32,7 @@ These permission should be applied by yourself thru android setting.
 
 Application source can be downloaded from [my github][1].
 
-[1]: https://github.com/riopapa/PhovoMemo
+[1]: https://github.com/riopapa/photomemo
 
 ## Screenshots
 

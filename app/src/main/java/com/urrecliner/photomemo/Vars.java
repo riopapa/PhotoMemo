@@ -1,4 +1,4 @@
-package com.urrecliner.phovomemo;
+package com.urrecliner.photomemo;
 
 import android.app.Activity;
 import android.content.Context;

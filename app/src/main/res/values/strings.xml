@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">PhoVoMemo</string>
-    <string name="show_name">PhoVo Memo</string>
+    <string name="app_name">photomemo</string>
+    <string name="show_name">Photo Memo</string>
 
     <string name="txtSave">Shot</string>
     <string name="txtSaveExit">Shot\n&amp;Exit</string>

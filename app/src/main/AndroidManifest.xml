@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.urrecliner.phovomemo">
+    package="com.urrecliner.photomemo">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -14,7 +14,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/food_name"
+        android:icon="@mipmap/photo_memo"
         android:label="@string/show_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">

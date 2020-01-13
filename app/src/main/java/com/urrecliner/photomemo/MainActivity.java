@@ -1,4 +1,4 @@
-package com.urrecliner.phovomemo;
+package com.urrecliner.photomemo;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -57,30 +57,30 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.urrecliner.phovomemo.BuildBitMap.buildSignatureMap;
-import static com.urrecliner.phovomemo.Vars.bitMapCamera;
-import static com.urrecliner.phovomemo.Vars.cameraOrientation;
-import static com.urrecliner.phovomemo.Vars.currActivity;
-import static com.urrecliner.phovomemo.Vars.latitude;
-import static com.urrecliner.phovomemo.Vars.longitude;
-import static com.urrecliner.phovomemo.Vars.mActivity;
-import static com.urrecliner.phovomemo.Vars.mCamera;
-import static com.urrecliner.phovomemo.Vars.mContext;
-import static com.urrecliner.phovomemo.Vars.nexus6P;
-import static com.urrecliner.phovomemo.Vars.phoneMake;
-import static com.urrecliner.phovomemo.Vars.phoneModel;
-import static com.urrecliner.phovomemo.Vars.phonePrefix;
-import static com.urrecliner.phovomemo.Vars.signatureMap;
-import static com.urrecliner.phovomemo.Vars.strAddress;
-import static com.urrecliner.phovomemo.Vars.strMapAddress;
-import static com.urrecliner.phovomemo.Vars.strMapPlace;
-import static com.urrecliner.phovomemo.Vars.strPlace;
-import static com.urrecliner.phovomemo.Vars.strPosition;
-import static com.urrecliner.phovomemo.Vars.strVoice;
-import static com.urrecliner.phovomemo.Vars.utils;
-import static com.urrecliner.phovomemo.Vars.xPixel;
-import static com.urrecliner.phovomemo.Vars.yPixel;
-import static com.urrecliner.phovomemo.Vars.zoomValue;
+import static com.urrecliner.photomemo.BuildBitMap.buildSignatureMap;
+import static com.urrecliner.photomemo.Vars.bitMapCamera;
+import static com.urrecliner.photomemo.Vars.cameraOrientation;
+import static com.urrecliner.photomemo.Vars.currActivity;
+import static com.urrecliner.photomemo.Vars.latitude;
+import static com.urrecliner.photomemo.Vars.longitude;
+import static com.urrecliner.photomemo.Vars.mActivity;
+import static com.urrecliner.photomemo.Vars.mCamera;
+import static com.urrecliner.photomemo.Vars.mContext;
+import static com.urrecliner.photomemo.Vars.nexus6P;
+import static com.urrecliner.photomemo.Vars.phoneMake;
+import static com.urrecliner.photomemo.Vars.phoneModel;
+import static com.urrecliner.photomemo.Vars.phonePrefix;
+import static com.urrecliner.photomemo.Vars.signatureMap;
+import static com.urrecliner.photomemo.Vars.strAddress;
+import static com.urrecliner.photomemo.Vars.strMapAddress;
+import static com.urrecliner.photomemo.Vars.strMapPlace;
+import static com.urrecliner.photomemo.Vars.strPlace;
+import static com.urrecliner.photomemo.Vars.strPosition;
+import static com.urrecliner.photomemo.Vars.strVoice;
+import static com.urrecliner.photomemo.Vars.utils;
+import static com.urrecliner.photomemo.Vars.xPixel;
+import static com.urrecliner.photomemo.Vars.yPixel;
+import static com.urrecliner.photomemo.Vars.zoomValue;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -378,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
     public void startCamera() {
 
         if (mCameraPreview == null) {
-            mCameraPreview = new com.urrecliner.phovomemo.CameraPreview(this, (SurfaceView) findViewById(R.id.camera_surface));
+            mCameraPreview = new com.urrecliner.photomemo.CameraPreview(this, (SurfaceView) findViewById(R.id.camera_surface));
             mCameraPreview.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT));
             ((FrameLayout) findViewById(R.id.frame)).addView(mCameraPreview);
@@ -509,8 +509,7 @@ public class MainActivity extends AppCompatActivity {
         mSensorManager.registerListener(deviceOrientation.getEventListener(), mMagnetometer, SensorManager.SENSOR_DELAY_UI);
     }
 
-
-    // ↓ ↓ ↓ P E R M I S S I O N    RELATED /////// ↓ ↓ ↓ ↓
+//     ↓ ↓ ↓ P E R M I S S I O N    RELATED /////// ↓ ↓ ↓ ↓
     ArrayList<String> permissions = new ArrayList<>();
     private final static int ALL_PERMISSIONS_RESULT = 101;
     ArrayList<String> permissionsToRequest;

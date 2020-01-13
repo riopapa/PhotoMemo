@@ -1,4 +1,4 @@
-package com.urrecliner.phovomemo;
+package com.urrecliner.photomemo;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
