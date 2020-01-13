@@ -1,5 +1,5 @@
 
-# PhoVo Memo (Photo Voice Memo)
+# Photo Memo (Photo Voice Memo)
 
 With this application, you can keep some memo, place and address in photo. It may be useful to record food name, taste.. in some restaurant.   
 
