@@ -3,7 +3,7 @@
 
 With this application, you can keep some memo, place and address in photo. It may be useful to record food name, taste.. in some restaurant.   
 
-It saves two photo, one is photo you shoted and the other is adding memo you spoke, place name, and address, so that you may refer later.
+It saves two photo, one is photo you shot and the other is adding memo you spoke, place name, and address, so that you may refer later.
 
 Information in screen shots are
 - google map place and address (you may change after gathering from google 
@@ -38,15 +38,7 @@ Application source can be downloaded from [my github][1].
 
 - main activity (activity_main.xml)<br>
 
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="mainActivity.jpg" height="800" alt="mainActivity"/>
-
-- camera activity (activity_camera.xml)<br>
-Photo shot with location information<br>File name in DCIM has place name also<br>
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="cameraActivity.jpg" height="400" alt="screenShotPhoto"/> 
-
-- google map activity (activity_land.xml)<br>
-Google Map shot with location information<br>File name in DCIM has place name also
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="googleMap.jpg" height="400" alt="screenShotGoogleMap"/> 
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="screenShotPhoto.jpg" height="800" alt="mainActivity"/>
 
 ## How to use
 
@@ -55,6 +47,8 @@ Google Map shot with location information<br>File name in DCIM has place name al
 2. Google voice detecting will be automatically prompted until you turn it off with <img src="./app/src/main/res/mipmap-xxhdpi/micro_phone_off.png" width="20" height="20" alt="micro_phone_off"/> You turn it on by pressing <img src="./app/src/main/res/mipmap-xxhdpi/micro_phone_on.png" width="20" height="20" alt="micro_phone_on"/> 
 
 3. ##SHOT## button will save photo and photo with info and will stay for next shot, ##SHOT & EXIT## will save photos and exit application.
+
+4. <img src="./app/src/main/res/mipmap-xxhdpi/icon_clear.png" width="20" height="20" alt="micro_phone_on"/> is for canceling text via google voice recognition or text input
 
 ## Comments
 
