@@ -136,7 +136,7 @@
         android:layout_margin="4sp"
         android:background="#00000000"
         android:contentDescription="@string/todo"
-        android:src="@mipmap/micro_phone_off"
+        android:src="@mipmap/micro_phone_on"
         app:layout_constraintTop_toBottomOf="@id/guideline"
         app:layout_constraintLeft_toRightOf="@id/btnShotExit"
         app:layout_constraintRight_toRightOf="parent"

@@ -65,12 +65,12 @@ class BuildBitMap {
         mActivity.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(newFile)));
 
         Bitmap mergedMap = markDateLocSignature(bitMapCamera, timeStamp);
-        nowTime += 50;
+        nowTime += 150;
         String outText = (strVoice.length() > 10) ? strVoice.substring(0, 10) : strVoice;
         String outFileName2 = sdfFileName.format(nowTime) + "_" + strPlace + " (" + outText.trim() +")";
         File newFile2 = new File(utils.getPublicCameraDirectory(), phonePrefix + outFileName2 + " _ha.jpg");
         writeCameraFile(mergedMap, newFile2);
-        setNewFileExif(newFile);
+        setNewFileExif(newFile2);
         mActivity.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(newFile2)));
         strVoice = "";
     }

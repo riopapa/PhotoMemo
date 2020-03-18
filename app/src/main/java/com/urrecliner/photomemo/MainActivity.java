@@ -98,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
     private Button btnShot;
     private int buttonBackColor;
     private boolean exitApp;
-    private boolean sttMode;
 
     private TextView tVAddress;
     private int addressBackColor;
@@ -187,11 +186,7 @@ public class MainActivity extends AppCompatActivity {
         mSpeak.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sttMode = !sttMode;
-                ImageView iv = findViewById(R.id.btnSpeak);
-                iv.setImageResource(sttMode ? R.mipmap.micro_phone_off: R.mipmap.micro_phone_on);
-                if (sttMode)
-                    startGetVoice();
+                startGetVoice();
             }
         });
 
@@ -262,6 +257,7 @@ public class MainActivity extends AppCompatActivity {
         if (exitApp) {
             new Timer().schedule(new TimerTask() {
                 public void run() {
+                    finish();
                     audioManager.adjustVolume(AudioManager.ADJUST_UNMUTE, AudioManager.FLAG_PLAY_SOUND);
                     mActivity.finishAffinity();
                     android.os.Process.killProcess(android.os.Process.myPid());
@@ -440,15 +436,14 @@ public class MainActivity extends AppCompatActivity {
         tvVoice.setText(strVoice);
         new Timer().schedule(new TimerTask() {
             public void run() {
-                sttMode = true;
                 startGetVoice();
             }
-        }, 1000);
+        }, 300);
     }
 
     public Location getGPSCord() {
 
-        utils.log("gpscord called", "here");
+//        utils.log("called", "here");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "ACCESS FINE LOCATION not allowed", Toast.LENGTH_LONG).show();
             return null;
@@ -480,14 +475,8 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK) {
                     ArrayList<String> result = data
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    strVoice = strVoice + result.get(0);
+                    strVoice = (strVoice + " " + result.get(0)).trim();
                     tvVoice.setText(strVoice);
-                    new Timer().schedule(new TimerTask() {
-                        public void run() {
-                            if (sttMode)
-                                startGetVoice();
-                        }
-                    }, 1000);
                 }
                 break;
             default:
