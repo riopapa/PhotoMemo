@@ -41,8 +41,8 @@ class BuildBitMap {
 
     private String logID = "buildCameraImage";
     private long nowTime;
-    private static final SimpleDateFormat sdfExif = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.ENGLISH);
-    private static final SimpleDateFormat sdfPhoto = new SimpleDateFormat("`yy/MM/dd HH:mm", Locale.ENGLISH);
+    private static final SimpleDateFormat sdfExif = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.KOREA);
+    private static final SimpleDateFormat sdfPhoto = new SimpleDateFormat("`yy/MM/dd(EEE) HH:mm", Locale.KOREA);
     private final SimpleDateFormat sdfFileName = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.KOREA);
 
     void makeOutMap() {
@@ -131,7 +131,7 @@ class BuildBitMap {
         }
         drawTextOnCanvas(canvas, dateTime, fontSize, xPos, yPos);
 
-        int sigSize = (width + height) / 14;
+        int sigSize = (width + height) / 16;
         Bitmap sigMap = Bitmap.createScaledBitmap(signatureMap, sigSize, sigSize, false);
         xPos = width - sigSize - width / 20;
         yPos = yPos - sigSize / 4;
@@ -147,11 +147,11 @@ class BuildBitMap {
         fontSize = fontSize * 12 / 10;
         yPos -= fontSize + fontSize / 5;
         yPos = drawTextOnCanvas(canvas, strAddress, fontSize, xPos, yPos);
-        fontSize = fontSize * 14 / 10;
-        yPos -= fontSize + fontSize / 5;
-        yPos = drawTextOnCanvas(canvas, strPlace, fontSize, xPos, yPos);
-        fontSize = fontSize * 12 / 10;
+        fontSize = fontSize * 16 / 10;
         yPos -= fontSize + fontSize / 4;
+        yPos = drawTextOnCanvas(canvas, strPlace, fontSize, xPos, yPos);
+///        fontSize = fontSize * 12 / 10;
+        yPos -= fontSize + fontSize / 2;
         drawTextOnCanvas(canvas, strVoice, fontSize, xPos, yPos);
         return newMap;
     }
@@ -159,13 +159,9 @@ class BuildBitMap {
     private int drawTextOnCanvas(Canvas canvas, String text, int fontSize, int xPos, int yPos) {
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setTextSize(fontSize);
-//        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.XOR));
-        paint.setTypeface(Typeface.DEFAULT_BOLD);
-        paint.setTextAlign(Paint.Align.CENTER);
         int cWidth = canvas.getWidth() * 3 / 4;
         float tWidth = paint.measureText(text);
         int pos;
-        int d = fontSize / 14;
         if (tWidth > cWidth) {
 //            utils.log("size","cWidth:"+cWidth+" tWidth:"+tWidth);
             int length = text.length() / 2;
@@ -173,29 +169,33 @@ class BuildBitMap {
                 if (text.substring(pos,pos+1).equals(" "))
                     break;
             String text1 = text.substring(pos);
-            drawTextMultiple(canvas, text1, xPos, yPos, d, paint);
+            drawOutLinedText(canvas, text1, xPos, yPos, fontSize);
             yPos -= fontSize + fontSize / 4;
             text1 = text.substring(0, pos);
-            drawTextMultiple(canvas, text1, xPos, yPos, d, paint);
+            drawOutLinedText(canvas, text1, xPos, yPos, fontSize);
             return yPos;
         }
         else
-            drawTextMultiple(canvas, text, xPos, yPos, d, paint);
+            drawOutLinedText(canvas, text, xPos, yPos, fontSize);
         return yPos;
     }
 
-    private void drawTextMultiple (Canvas canvas, String text, int xPos, int yPos, int d, Paint paint) {
+    private void drawOutLinedText(Canvas canvas, String text, int xPos, int yPos, int textSize) {
+
+        int color = ContextCompat.getColor(mContext, R.color.infoColor);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setTypeface(Typeface.DEFAULT_BOLD);
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setAntiAlias(true);
+        paint.setTextSize(textSize);
         paint.setColor(Color.BLACK);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        paint.setStrokeWidth((int)(textSize/8));
         paint.setTypeface(mContext.getResources().getFont(R.font.nanumbarungothic));
-        canvas.drawText(text, xPos - d, yPos - d, paint);
-        canvas.drawText(text, xPos + d, yPos - d, paint);
-        canvas.drawText(text, xPos - d, yPos + d, paint);
-        canvas.drawText(text, xPos + d, yPos + d, paint);
-        canvas.drawText(text, xPos - d, yPos, paint);
-        canvas.drawText(text, xPos + d, yPos, paint);
-        canvas.drawText(text, xPos, yPos - d, paint);
-        canvas.drawText(text, xPos, yPos + d, paint);
-        paint.setColor(ContextCompat.getColor(mContext, R.color.foreColor));
+        canvas.drawText(text, xPos, yPos, paint);
+
+        paint.setColor(color);
+        paint.setStyle(Paint.Style.FILL);
         canvas.drawText(text, xPos, yPos, paint);
     }
 
