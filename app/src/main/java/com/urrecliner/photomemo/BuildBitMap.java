@@ -10,9 +10,10 @@ import android.graphics.Typeface;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -48,7 +49,6 @@ class BuildBitMap {
     void makeOutMap() {
 
         nowTime = System.currentTimeMillis();
-        String timeStamp = sdfPhoto.format(nowTime);
         int width = bitMapCamera.getWidth();
         int height = bitMapCamera.getHeight();
         if (cameraOrientation == 6 && width > height)
@@ -64,7 +64,7 @@ class BuildBitMap {
         setNewFileExif(newFile);
         mActivity.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(newFile)));
 
-        Bitmap mergedMap = markDateLocSignature(bitMapCamera, timeStamp);
+        Bitmap mergedMap = markDateLocSignature(bitMapCamera, nowTime);
         nowTime += 150;
         String outText = (strVoice.length() > 10) ? strVoice.substring(0, 10) : strVoice;
         String outFileName2 = sdfFileName.format(nowTime) + "_" + strPlace + " (" + outText.trim() +")";
@@ -114,44 +114,39 @@ class BuildBitMap {
         return degree + "/1," + minute + "/1," + second + "/10000";
     }
 
-    private Bitmap markDateLocSignature(Bitmap photoMap, String dateTime) {
 
+    Bitmap markDateLocSignature(Bitmap photoMap, long timeStamp) {
+        final SimpleDateFormat sdfHourMin = new SimpleDateFormat("`yy/MM/dd(EEE) HH:mm", Locale.KOREA);
+        int fontSize;
         int width = photoMap.getWidth();
         int height = photoMap.getHeight();
         Bitmap newMap = Bitmap.createBitmap(width, height, photoMap.getConfig());
         Canvas canvas = new Canvas(newMap);
         canvas.drawBitmap(photoMap, 0f, 0f, null);
-        int fontSize = height / 20;
-        int xPos = width / 6;
-        int yPos = height / 10;
-        if (cameraOrientation != 1) {
-            fontSize = width / 20;
-            xPos = width / 5;
-            yPos = height / 8;
-        }
-        drawTextOnCanvas(canvas, dateTime, fontSize, xPos, yPos);
-
-        int sigSize = (width + height) / 16;
+        fontSize = (width>height) ? (width+height)/56 : (width+height)/64;  // date time
+        String dateTime = sdfHourMin.format(timeStamp);
+        int sigSize = (width + height) / 24;
         Bitmap sigMap = Bitmap.createScaledBitmap(signatureMap, sigSize, sigSize, false);
-        xPos = width - sigSize - width / 20;
-        yPos = yPos - sigSize / 4;
+        int xPos = (width>height) ? width / 5: width / 4;
+        int yPos = (width>height) ? height / 8: height / 9;
+        drawTextOnCanvas(canvas, dateTime, fontSize, xPos, yPos);
+        xPos = width - sigSize - sigSize / 2;
+        yPos = sigSize/ 2;
         canvas.drawBitmap(sigMap, xPos, yPos, null);
-
         if (strPosition.length() == 0) strPosition = "_";
         if (strPlace.length() == 0) strPlace = "_";
         if (strVoice.length() == 0) strVoice = "_";
         xPos = width / 2;
-        fontSize = (cameraOrientation == 1) ? width / 54 : width / 32;
-        yPos = height - fontSize - fontSize / 2;
+        fontSize = (height + width) / 72;  // gps
+        yPos = height - fontSize - fontSize / 5;
         yPos = drawTextOnCanvas(canvas, strPosition, fontSize, xPos, yPos);
-        fontSize = fontSize * 12 / 10;
+        fontSize = fontSize * 13 / 10;  // address
         yPos -= fontSize + fontSize / 5;
         yPos = drawTextOnCanvas(canvas, strAddress, fontSize, xPos, yPos);
-        fontSize = fontSize * 16 / 10;
-        yPos -= fontSize + fontSize / 4;
+        fontSize = fontSize * 14 / 10;  // Place
+        yPos -= fontSize + fontSize / 5;
         yPos = drawTextOnCanvas(canvas, strPlace, fontSize, xPos, yPos);
-///        fontSize = fontSize * 12 / 10;
-        yPos -= fontSize + fontSize / 2;
+        yPos -= fontSize + fontSize / 5;
         drawTextOnCanvas(canvas, strVoice, fontSize, xPos, yPos);
         return newMap;
     }

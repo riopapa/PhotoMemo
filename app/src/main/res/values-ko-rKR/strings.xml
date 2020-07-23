@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">photomemo</string>
+    <string name="txtSave">Shot</string>
+    <string name="txtSaveExit">Shot &amp;Exit</string>
+    <string name="txtPosition">Position</string>
+    <string name="txtDateTime">Date Time</string>
+    <string name="txtVoice">voice text</string>
+    <string name="txtPlace">place info</string>
+    <string name="txtAddress">address</string>
+    <string name="photo">photo</string>
+    <string name="map_scale">map scale</string>
+    <string name="todo">TODO</string>
+    <string name="date_time">`20/12/31 19:24</string>
+    <string name="voice_hint">Press Voice Button to Record</string>
+</resources>

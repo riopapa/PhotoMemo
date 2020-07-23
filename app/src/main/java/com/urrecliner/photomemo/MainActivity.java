@@ -1,12 +1,12 @@
 package com.urrecliner.photomemo;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -19,6 +19,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.ExifInterface;
 import android.net.ConnectivityManager;
@@ -26,12 +27,10 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.speech.RecognizerIntent;
-import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.SurfaceView;
 import android.view.View;
@@ -44,13 +43,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.ActivityCompat;
+
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.nearbyplacepicker.NearByPlacePicker;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -66,14 +70,10 @@ import static com.urrecliner.photomemo.Vars.longitude;
 import static com.urrecliner.photomemo.Vars.mActivity;
 import static com.urrecliner.photomemo.Vars.mCamera;
 import static com.urrecliner.photomemo.Vars.mContext;
-import static com.urrecliner.photomemo.Vars.nexus6P;
 import static com.urrecliner.photomemo.Vars.phoneMake;
 import static com.urrecliner.photomemo.Vars.phoneModel;
-import static com.urrecliner.photomemo.Vars.phonePrefix;
 import static com.urrecliner.photomemo.Vars.signatureMap;
 import static com.urrecliner.photomemo.Vars.strAddress;
-import static com.urrecliner.photomemo.Vars.strMapAddress;
-import static com.urrecliner.photomemo.Vars.strMapPlace;
 import static com.urrecliner.photomemo.Vars.strPlace;
 import static com.urrecliner.photomemo.Vars.strPosition;
 import static com.urrecliner.photomemo.Vars.strVoice;
@@ -85,7 +85,7 @@ import static com.urrecliner.photomemo.Vars.zoomValue;
 public class MainActivity extends AppCompatActivity {
 
     private GoogleApiClient mGoogleApiClient;
-    private final static int PLACE_PICKER_REQUEST = 1;
+    final int REQUEST_PLACE_PICKER = 1111;
     private final static int VOICE_RECOGNISE = 1234;
     private CameraPreview mCameraPreview;
     private String logID = "main";
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-        currActivity =  this.getClass().getSimpleName();
+        currActivity = this.getClass().getSimpleName();
         mContext = getApplicationContext();
         askPermission();
 
@@ -124,8 +124,8 @@ public class MainActivity extends AppCompatActivity {
         mActivity = this;
         phoneModel = Build.MODEL;           // SM-G965N             Nexus 6P
         phoneMake = Build.MANUFACTURER;     // samsung              Huawei
-        if (phoneModel.equals(nexus6P))
-            phonePrefix = "IMG_";
+//        if (phoneModel.equals(nexus6P))
+//            phonePrefix = "IMG_";
 
         xPixel = Resources.getSystem().getDisplayMetrics().widthPixels;     // 2094, 2960
         yPixel = Resources.getSystem().getDisplayMetrics().heightPixels;    // 1080, 1440
@@ -156,9 +156,8 @@ public class MainActivity extends AppCompatActivity {
                     exitApp = false;
                     reactClick();
                     take_Picture();
-                }
-                else
-                    Toast.makeText(mContext,"No Voice Text", Toast.LENGTH_LONG).show();
+                } else
+                    Toast.makeText(mContext, "No Voice Text", Toast.LENGTH_LONG).show();
             }
         });
 
@@ -172,9 +171,8 @@ public class MainActivity extends AppCompatActivity {
                     exitApp = true;
                     reactClick();
                     take_Picture();
-                }
-                else
-                    Toast.makeText(mContext,"No Voice Text", Toast.LENGTH_LONG).show();
+                } else
+                    Toast.makeText(mContext, "No Voice Text", Toast.LENGTH_LONG).show();
             }
         });
         ColorDrawable buttonColor = (ColorDrawable) btnShot.getBackground();
@@ -190,20 +188,28 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ready_GoogleAPIClient();
-        if (isNetworkAvailable()) {
-            PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
-            Intent intent = null;
-            try {
-                intent = builder.build(MainActivity.this);
-            } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
-                utils.log(logID,"#PP" + e.toString());
-                e.printStackTrace();
-            }
-            startActivityForResult(intent, PLACE_PICKER_REQUEST);
+//        ready_GoogleAPIClient();
+        int waitCount = 0;
+        getMostLastLocation();
+        while (latitude == 0 && waitCount++ < 10) {
+            SystemClock.sleep(1000);
+            Log.w(""+waitCount,"latitude="+latitude);
         }
-        else {
-            Toast.makeText(mContext,"No Network", Toast.LENGTH_LONG).show();;
+        if (isNetworkAvailable()) {
+            showPlacePicker();
+//
+//            PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+//            Intent intent = null;
+//            try {
+//                intent = builder.build(MainActivity.this);
+//            } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
+//                utils.log(logID,"#PP" + e.toString());
+//                e.printStackTrace();
+//            }
+//            startActivityForResult(intent, PLACE_PICKER_REQUEST);
+        } else {
+            Toast.makeText(mContext, "No Network", Toast.LENGTH_LONG).show();
+            ;
             showCurrentLocation();
         }
         tvVoice.setText("");
@@ -218,6 +224,21 @@ public class MainActivity extends AppCompatActivity {
                 signatureMap = buildSignatureMap();
             }
         });
+    }
+
+    private void showPlacePicker() {
+        NearByPlacePicker.IntentBuilder builder = new NearByPlacePicker.IntentBuilder();
+        builder.setAndroidApiKey(getResources().getString(R.string.app_api_key))
+                .setMapsApiKey(getResources().getString(R.string.maps_api_key));
+
+        builder.setLatLng(new LatLng(latitude, longitude));
+
+        try {
+            Intent placeIntent = builder.build(mActivity);
+            startActivityForResult(placeIntent, REQUEST_PLACE_PICKER);
+        } catch (Exception ex) {
+            // Google Play services is not available...
+        }
     }
 
     private void startGetVoice() {
@@ -238,19 +259,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        utils.log(logID," new Config "+newConfig.orientation);
-        Toast.makeText(mContext,"curr orentation is "+newConfig.orientation,Toast.LENGTH_SHORT).show();
+        utils.log(logID, " new Config " + newConfig.orientation);
+        Toast.makeText(mContext, "curr orentation is " + newConfig.orientation, Toast.LENGTH_SHORT).show();
     }
 
-    private void ready_GoogleAPIClient() {
-        if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(new MyConnectionCallBack())
-                    .addOnConnectionFailedListener(new MyOnConnectionFailedListener())
-                    .addApi(LocationServices.API)
-                    .build();
-        }
-    }
+//    private void ready_GoogleAPIClient() {
+//        if (mGoogleApiClient == null) {
+//            mGoogleApiClient = new GoogleApiClient.Builder(this)
+//                    .addConnectionCallbacks(new MyConnectionCallBack())
+//                    .addOnConnectionFailedListener(new MyOnConnectionFailedListener())
+//                    .addApi(LocationServices.API)
+//                    .build();
+//        }
+//    }
 
     private void take_Picture() {
         mCamera.takePicture(null, null, rawCallback, jpegCallback); // null is for silent shot
@@ -264,13 +285,13 @@ public class MainActivity extends AppCompatActivity {
                     System.exit(0);
                 }
             }, 3000);
-        }
-        else {
+        } else {
             startGetVoice();
         }
     }
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+
     static {
         ORIENTATIONS.append(ExifInterface.ORIENTATION_NORMAL, 0);
         ORIENTATIONS.append(ExifInterface.ORIENTATION_ROTATE_90, 90);
@@ -323,13 +344,13 @@ public class MainActivity extends AppCompatActivity {
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
             bitMapCamera = BitmapFactory.decodeByteArray(data, 0, data.length, options);
             new SaveImageTask().execute("");
-            }
-        };
+        }
+    };
 
-    private class SaveImageTask extends AsyncTask<String, String , String> {
+    private class SaveImageTask extends AsyncTask<String, String, String> {
 
         @Override
-        protected String doInBackground(String ... data) {
+        protected String doInBackground(String... data) {
             mCamera.stopPreview();
             mCamera.release();
             BuildBitMap buildBitMap = new BuildBitMap();
@@ -347,29 +368,31 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class MyConnectionCallBack implements GoogleApiClient.ConnectionCallbacks {
-        public void onConnected(Bundle bundle) {}
-
-        public void onConnectionSuspended(int i) {}
-    }
-
-    private class MyOnConnectionFailedListener implements GoogleApiClient.OnConnectionFailedListener {
-        @Override
-        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-            utils.log(logID,"#oF");
-        }
-    }
-
-    protected void onStart() {
-        super.onStart();
-        ready_GoogleAPIClient();
-        mGoogleApiClient.connect();
-    }
-
-    protected void onStop() {
-        mGoogleApiClient.disconnect();
-        super.onStop();
-    }
+//    private class MyConnectionCallBack implements GoogleApiClient.ConnectionCallbacks {
+//        public void onConnected(Bundle bundle) {
+//        }
+//
+//        public void onConnectionSuspended(int i) {
+//        }
+//    }
+//
+//    private class MyOnConnectionFailedListener implements GoogleApiClient.OnConnectionFailedListener {
+//        @Override
+//        public void onConnectionFailed(ConnectionResult connectionResult) {
+//            utils.log(logID, "#oF");
+//        }
+//    }
+//
+//    protected void onStart() {
+//        super.onStart();
+////        ready_GoogleAPIClient();
+////        mGoogleApiClient.connect();
+//    }
+//
+//    protected void onStop() {
+////        mGoogleApiClient.disconnect();
+//        super.onStop();
+//    }
 
     public void startCamera() {
 
@@ -394,14 +417,14 @@ public class MainActivity extends AppCompatActivity {
         } catch (RuntimeException ex) {
             Toast.makeText(getApplicationContext(), "camera cameraOrientation " + ex.getMessage(),
                     Toast.LENGTH_LONG).show();
-            utils.log(logID,"CAMERA not found " + ex.getMessage());
+            utils.log(logID, "CAMERA not found " + ex.getMessage());
         }
         Camera.Parameters params = mCamera.getParameters();
         params.setRotation(90);
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
         params.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
         for (Camera.Size size : params.getSupportedPictureSizes()) {
-            float ratio= (float) size.width / (float) size.height;
+            float ratio = (float) size.width / (float) size.height;
             if (ratio > 1.7) {
                 params.setPictureSize(size.width, size.height);
                 break;
@@ -412,7 +435,7 @@ public class MainActivity extends AppCompatActivity {
         mCameraPreview.setCamera(mCamera);
     }
 
-    public void showCurrentLocation() {
+    void getCurrentLatLng() {
 
         Location location = getGPSCord();
         if (location != null) {
@@ -421,24 +444,20 @@ public class MainActivity extends AppCompatActivity {
             double altitude = location.getAltitude();
             strPosition = String.format(Locale.ENGLISH, "%.5f ; %.5f ; %.2f", latitude, longitude, altitude);
         }
+    }
 
+    void showCurrentLocation() {
+
+        strAddress = null;
         if (isNetworkAvailable()) {
             Geocoder geocoder = new Geocoder(this, Locale.KOREA);
             strAddress = GPS2Address.get(geocoder, latitude, longitude);
         }
-        else {
-            strAddress = "_";
-        }
-        String text = ((strMapPlace == null) ? " ":strMapPlace) + "\n" + ((strMapAddress == null) ? strAddress:strMapAddress);
+        String text = "\n" + strAddress;
         EditText et = findViewById(R.id.addressText);
         et.setText(text);
         et.setSelection(text.indexOf("\n"));
         tvVoice.setText(strVoice);
-        new Timer().schedule(new TimerTask() {
-            public void run() {
-                startGetVoice();
-            }
-        }, 300);
     }
 
     public Location getGPSCord() {
@@ -456,20 +475,30 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
+        super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
-            case PLACE_PICKER_REQUEST:
-                if (resultCode == RESULT_OK) {  // user picked up place within the google map list
-                    Place place = PlacePicker.getPlace(this, data);
-                    strMapPlace = place.getName().toString();
-                    String text = place.getAddress().toString();
-                    if (text.length() > 5)
-                        strMapAddress = text.replace("대한민국 ", "");
-                } else if (resultCode == RESULT_CANCELED) {
-                    strMapPlace = null;
-                    strMapAddress = null;
+            case REQUEST_PLACE_PICKER:
+                if (resultCode == RESULT_OK) {
+                    NearByPlacePicker.Companion companion = NearByPlacePicker.Companion;
+                    com.google.android.libraries.places.api.model.Place place = companion.getPlace(data);
+                    if (place != null) {
+                        strPlace = place.getName();
+                        latitude = place.getLatLng().latitude;
+                        longitude = place.getLatLng().longitude;
+                        Geocoder geocoder = new Geocoder(this, Locale.KOREA);
+                        strAddress = GPS2Address.get(geocoder, latitude, longitude);
+                        EditText et = findViewById(R.id.addressText);
+                        String text = strPlace + "\n" + strAddress;
+                        et.setText(text);
+                        et.setSelection(text.indexOf("\n") + 1);
+                        mCamera.enableShutterSound(true);
+                        new Timer().schedule(new TimerTask() {
+                            public void run() {
+                                startGetVoice();
+                            }
+                        }, 1000);
+                    }
                 }
-                mCamera.enableShutterSound(true);
-                showCurrentLocation();
                 break;
             case VOICE_RECOGNISE:
                 if (resultCode == RESULT_OK) {
@@ -498,31 +527,49 @@ public class MainActivity extends AppCompatActivity {
         mSensorManager.registerListener(deviceOrientation.getEventListener(), mMagnetometer, SensorManager.SENSOR_DELAY_UI);
     }
 
-//     ↓ ↓ ↓ P E R M I S S I O N    RELATED /////// ↓ ↓ ↓ ↓
-    ArrayList<String> permissions = new ArrayList<>();
+    void getMostLastLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Location location;
+        assert locationManager != null;
+        location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (location == null)
+            location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        if (location != null) {
+            latitude = location.getLatitude();
+            longitude = location.getLongitude();
+            double altitude = location.getAltitude();
+            strPosition = String.format(Locale.ENGLISH, "%.5f ; %.5f ; %.2f", latitude, longitude, altitude);
+        }
+    }
+
+    // ↓ ↓ ↓ P E R M I S S I O N   RELATED /////// ↓ ↓ ↓ ↓  BEST CASE
     private final static int ALL_PERMISSIONS_RESULT = 101;
-    ArrayList<String> permissionsToRequest;
+    ArrayList permissionsToRequest;
     ArrayList<String> permissionsRejected = new ArrayList<>();
+    String [] permissions;
 
     private void askPermission() {
-        permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        permissions.add(Manifest.permission.INTERNET);
-        permissions.add(Manifest.permission.RECORD_AUDIO);
-        permissions.add(Manifest.permission.ACCESS_NETWORK_STATE);
-        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
-        permissions.add(Manifest.permission.CAMERA);
-        permissions.add(Manifest.permission.MODIFY_AUDIO_SETTINGS);
-        permissionsToRequest = findUnAskedPermissions(permissions);
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), PackageManager.GET_PERMISSIONS);
+            permissions = info.requestedPermissions;//This array contain
+        } catch (Exception e) {
+            utils.log("Permission", "Not done");
+        }
+
+        permissionsToRequest = findUnAskedPermissions();
         if (permissionsToRequest.size() != 0) {
-            requestPermissions(permissionsToRequest.toArray(new String[0]),
+            requestPermissions((String[]) permissionsToRequest.toArray(new String[0]),
 //            requestPermissions(permissionsToRequest.toArray(new String[permissionsToRequest.size()]),
                     ALL_PERMISSIONS_RESULT);
         }
     }
 
-    private ArrayList findUnAskedPermissions(@NonNull ArrayList<String> wanted) {
+    private ArrayList findUnAskedPermissions() {
         ArrayList <String> result = new ArrayList<String>();
-        for (String perm : wanted) if (hasPermission(perm)) result.add(perm);
+        for (String perm : permissions) if (hasPermission(perm)) result.add(perm);
         return result;
     }
     private boolean hasPermission(@NonNull String permission) {
@@ -532,9 +579,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == ALL_PERMISSIONS_RESULT) {
-            for (String perms : permissionsToRequest) {
-                if (hasPermission(perms)) {
-                    permissionsRejected.add(perms);
+            for (Object perms : permissionsToRequest) {
+                if (hasPermission((String) perms)) {
+                    permissionsRejected.add((String) perms);
                 }
             }
             if (permissionsRejected.size() > 0) {
@@ -543,28 +590,24 @@ public class MainActivity extends AppCompatActivity {
                     showDialog(msg);
                 }
             }
-//            else
-//                Toast.makeText(mContext, "Permissions not granted.", Toast.LENGTH_LONG).show();
+            else
+                Toast.makeText(mContext, "Permissions not granted.", Toast.LENGTH_LONG).show();
         }
     }
     private void showDialog(String msg) {
         showMessageOKCancel(msg,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        requestPermissions(permissionsRejected.toArray(
-                                new String[0]), ALL_PERMISSIONS_RESULT);
-                    }
-                });
+                (dialog, which) -> requestPermissions(permissionsRejected.toArray(
+                        new String[0]), ALL_PERMISSIONS_RESULT));
     }
     private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
-        new AlertDialog.Builder(mActivity)
+        new android.app.AlertDialog.Builder(mActivity)
                 .setMessage(message)
                 .setPositiveButton("OK", okListener)
                 .setNegativeButton("Cancel", null)
                 .create()
                 .show();
     }
+
 // ↑ ↑ ↑ ↑ P E R M I S S I O N    RELATED /////// ↑ ↑ ↑
 
 }
