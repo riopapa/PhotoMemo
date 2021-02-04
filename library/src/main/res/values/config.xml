@@ -10,11 +10,11 @@
     <bool name="enable_nearby_search">true</bool>   // ha
 
     <!-- 0.002 USD per each (2.00 USD per 1000) -->
-    <bool name="show_confirmation_photo">true</bool>
+    <bool name="show_confirmation_photo">false</bool>
 
     <!-- 0.007 USD per each (7.00 USD per 1000) -->
     <!-- Must enable Maps Static API in the key -->
-    <bool name="show_confirmation_map">true</bool>
+    <bool name="show_confirmation_map">false</bool>
 
     <!-- The zoom level that is initially applied to the map -->
     <integer name="default_zoom">17</integer>

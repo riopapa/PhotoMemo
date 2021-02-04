@@ -48,12 +48,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.nearbyplacepicker.NearByPlacePicker;
 
 import java.util.ArrayList;
@@ -112,7 +109,6 @@ public class MainActivity extends AppCompatActivity {
         currActivity = this.getClass().getSimpleName();
         mContext = getApplicationContext();
         askPermission();
-
         audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
         audioManager.adjustVolume(AudioManager.ADJUST_MUTE, AudioManager.FLAG_PLAY_SOUND);
 
@@ -126,14 +122,13 @@ public class MainActivity extends AppCompatActivity {
         phoneMake = Build.MANUFACTURER;     // samsung              Huawei
 //        if (phoneModel.equals(nexus6P))
 //            phonePrefix = "IMG_";
-
         xPixel = Resources.getSystem().getDisplayMetrics().widthPixels;     // 2094, 2960
         yPixel = Resources.getSystem().getDisplayMetrics().heightPixels;    // 1080, 1440
 
         tvVoice = findViewById(R.id.textVoice);
         tVAddress = findViewById(R.id.addressText);
         SharedPreferences mSettings = PreferenceManager.getDefaultSharedPreferences(this);
-        zoomValue = mSettings.getInt("Zoom", 16);
+        zoomValue = mSettings.getInt("zoom", 16);
 
 //        String hardware = Build.HARDWARE;   // samsungexynos9810    angler
 //        utils.log(logID,"this phone model is " + phoneModel);

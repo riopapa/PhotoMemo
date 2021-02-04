@@ -43,7 +43,6 @@ class BuildBitMap {
     private String logID = "buildCameraImage";
     private long nowTime;
     private static final SimpleDateFormat sdfExif = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.KOREA);
-    private static final SimpleDateFormat sdfPhoto = new SimpleDateFormat("`yy/MM/dd(EEE) HH:mm", Locale.KOREA);
     private final SimpleDateFormat sdfFileName = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.KOREA);
 
     void makeOutMap() {

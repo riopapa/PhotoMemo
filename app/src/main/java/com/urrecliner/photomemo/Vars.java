@@ -11,8 +11,6 @@ public class Vars {
     static Context mContext = null;
     static String strPlace = null;
     static String strAddress = null;
-    static String strMapPlace = null;
-    static String strMapAddress = null;
     static String strPosition = null;
     static String strVoice = " ";
 
