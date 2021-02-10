@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">photomemo</string>
+    <string name="app_name">Photo Memo</string>
     <string name="txtSave">Shot</string>
     <string name="txtSaveExit">Shot &amp;Exit</string>
     <string name="txtPosition">Position</string>
@@ -13,4 +13,11 @@
     <string name="todo">TODO</string>
     <string name="date_time">`20/12/31 19:24</string>
     <string name="voice_hint">Press Voice Button to Record</string>
+
+
+    <string name="programmatic_autocomplete_geocoding">Programmatic Autocomplete + Geocoding</string>
+    <string name="search">Search</string>
+    <string name="search_a_place">Search a Place</string>
+    <string name="programmatic_place_predictions_instructions">This activity demonstrates as-you-type programmatic place predictions. Tap on the search icon on the toolbar and search for a place.</string>
+
 </resources>

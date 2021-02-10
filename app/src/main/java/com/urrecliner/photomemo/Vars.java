@@ -5,6 +5,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+
 public class Vars {
 
     static String currActivity = null;
@@ -25,9 +27,11 @@ public class Vars {
     static String phoneModel = null;
     static String phoneMake = null;
     static String phonePrefix = "";
-    static String nexus6P = "Nexus 6P";
     static int xPixel, yPixel;
     static int cameraOrientation;
     static Bitmap signatureMap;
-
+    static String[] PlaceNames, PlaceVicinity;
+    static String PlaceName = null, PlaceAddress = null;
+    static boolean isPlacesReady = false;
+    static GoogleApiClient mGoogleApiClient;
 }

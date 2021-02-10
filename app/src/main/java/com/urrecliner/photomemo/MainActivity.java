@@ -43,15 +43,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.model.LatLng;
-import com.nearbyplacepicker.NearByPlacePicker;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -59,6 +56,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static com.urrecliner.photomemo.BuildBitMap.buildSignatureMap;
+import static com.urrecliner.photomemo.Vars.PlaceNames;
 import static com.urrecliner.photomemo.Vars.bitMapCamera;
 import static com.urrecliner.photomemo.Vars.cameraOrientation;
 import static com.urrecliner.photomemo.Vars.currActivity;
@@ -67,6 +65,7 @@ import static com.urrecliner.photomemo.Vars.longitude;
 import static com.urrecliner.photomemo.Vars.mActivity;
 import static com.urrecliner.photomemo.Vars.mCamera;
 import static com.urrecliner.photomemo.Vars.mContext;
+import static com.urrecliner.photomemo.Vars.mGoogleApiClient;
 import static com.urrecliner.photomemo.Vars.phoneMake;
 import static com.urrecliner.photomemo.Vars.phoneModel;
 import static com.urrecliner.photomemo.Vars.signatureMap;
@@ -81,7 +80,6 @@ import static com.urrecliner.photomemo.Vars.zoomValue;
 
 public class MainActivity extends AppCompatActivity {
 
-    private GoogleApiClient mGoogleApiClient;
     final int REQUEST_PLACE_PICKER = 1111;
     private final static int VOICE_RECOGNISE = 1234;
     private CameraPreview mCameraPreview;
@@ -100,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
     private int addressBackColor;
     AudioManager audioManager = null;
     private TextView tvVoice;
+
+    public static final String THEME_RES_ID_EXTRA = "widget_theme";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
         tVAddress = findViewById(R.id.addressText);
         SharedPreferences mSettings = PreferenceManager.getDefaultSharedPreferences(this);
         zoomValue = mSettings.getInt("zoom", 16);
-
+        utils = new Utils();
 //        String hardware = Build.HARDWARE;   // samsungexynos9810    angler
 //        utils.log(logID,"this phone model is " + phoneModel);
 
@@ -212,9 +212,9 @@ public class MainActivity extends AppCompatActivity {
         v.post(new Runnable() {
             @Override
             public void run() {
-                ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) v.getLayoutParams();
-                lp.width = lp.height * 10 / 17;
-                v.setLayoutParams(lp);
+//                ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) v.getLayoutParams();
+//                lp.width = lp.height * 10 / 17;
+//                v.setLayoutParams(lp);
                 utils.deleteOldLogFiles();
                 signatureMap = buildSignatureMap();
             }
@@ -222,18 +222,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showPlacePicker() {
-        NearByPlacePicker.IntentBuilder builder = new NearByPlacePicker.IntentBuilder();
-        builder.setAndroidApiKey(getResources().getString(R.string.app_api_key))
-                .setMapsApiKey(getResources().getString(R.string.maps_api_key));
 
-        builder.setLatLng(new LatLng(latitude, longitude));
+        GetNearbyPlacesData getNearbyPlacesData = new GetNearbyPlacesData();
+        String url = getUrl(latitude, longitude);
+        getNearbyPlacesData.execute(url);
+    }
 
-        try {
-            Intent placeIntent = builder.build(mActivity);
-            startActivityForResult(placeIntent, REQUEST_PLACE_PICKER);
-        } catch (Exception ex) {
-            // Google Play services is not available...
-        }
+
+    int PROXIMITY_RADIUS = 10000;
+
+    private String getUrl(double latitude , double longitude)
+    {
+
+        StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+        googlePlaceUrl.append("location="+latitude+","+longitude);
+        googlePlaceUrl.append("&radius="+PROXIMITY_RADIUS);
+        googlePlaceUrl.append("&sensor=true");
+        googlePlaceUrl.append("&language=ko");
+        googlePlaceUrl.append("&fields=formatted_address,name,geometry,vicinity");
+        googlePlaceUrl.append("&key="+getString(R.string.maps_api_key));
+        utils.log("getUrl", "url = "+googlePlaceUrl.toString());
+
+        return googlePlaceUrl.toString();
     }
 
     private void startGetVoice() {
@@ -258,15 +268,15 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(mContext, "curr orentation is " + newConfig.orientation, Toast.LENGTH_SHORT).show();
     }
 
-//    private void ready_GoogleAPIClient() {
-//        if (mGoogleApiClient == null) {
-//            mGoogleApiClient = new GoogleApiClient.Builder(this)
-//                    .addConnectionCallbacks(new MyConnectionCallBack())
-//                    .addOnConnectionFailedListener(new MyOnConnectionFailedListener())
-//                    .addApi(LocationServices.API)
-//                    .build();
-//        }
-//    }
+    private void ready_GoogleAPIClient() {
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(new MyConnectionCallBack())
+                    .addOnConnectionFailedListener(new MyOnConnectionFailedListener())
+                    .addApi(LocationServices.API)
+                    .build();
+        }
+    }
 
     private void take_Picture() {
         mCamera.takePicture(null, null, rawCallback, jpegCallback); // null is for silent shot
@@ -363,31 +373,31 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-//    private class MyConnectionCallBack implements GoogleApiClient.ConnectionCallbacks {
-//        public void onConnected(Bundle bundle) {
-//        }
-//
-//        public void onConnectionSuspended(int i) {
-//        }
-//    }
-//
-//    private class MyOnConnectionFailedListener implements GoogleApiClient.OnConnectionFailedListener {
-//        @Override
-//        public void onConnectionFailed(ConnectionResult connectionResult) {
-//            utils.log(logID, "#oF");
-//        }
-//    }
-//
-//    protected void onStart() {
-//        super.onStart();
-////        ready_GoogleAPIClient();
-////        mGoogleApiClient.connect();
-//    }
-//
-//    protected void onStop() {
-////        mGoogleApiClient.disconnect();
-//        super.onStop();
-//    }
+    private class MyConnectionCallBack implements GoogleApiClient.ConnectionCallbacks {
+        public void onConnected(Bundle bundle) {
+        }
+
+        public void onConnectionSuspended(int i) {
+        }
+    }
+
+    private class MyOnConnectionFailedListener implements GoogleApiClient.OnConnectionFailedListener {
+        @Override
+        public void onConnectionFailed(ConnectionResult connectionResult) {
+            utils.log(logID, "#oF");
+        }
+    }
+
+    protected void onStart() {
+        super.onStart();
+//        ready_GoogleAPIClient();
+//        mGoogleApiClient.connect();
+    }
+
+    protected void onStop() {
+//        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
 
     public void startCamera() {
 
@@ -471,27 +481,27 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         super.onActivityResult(requestCode, resultCode, data);
+        utils.log("activity","result="+requestCode+", "+requestCode);
         switch (requestCode) {
             case REQUEST_PLACE_PICKER:
                 if (resultCode == RESULT_OK) {
-                    NearByPlacePicker.Companion companion = NearByPlacePicker.Companion;
-                    com.google.android.libraries.places.api.model.Place place = companion.getPlace(data);
-                    if (place != null) {
-                        strPlace = place.getName();
-                        latitude = place.getLatLng().latitude;
-                        longitude = place.getLatLng().longitude;
-                        Geocoder geocoder = new Geocoder(this, Locale.KOREA);
-                        strAddress = GPS2Address.get(geocoder, latitude, longitude);
-                        EditText et = findViewById(R.id.addressText);
-                        String text = strPlace + "\n" + strAddress;
-                        et.setText(text);
-                        et.setSelection(text.indexOf("\n") + 1);
-                        mCamera.enableShutterSound(true);
-                        new Timer().schedule(new TimerTask() {
-                            public void run() {
-                                startGetVoice();
-                            }
-                        }, 1000);
+                    if (PlaceNames.length > 0) {
+//                        if (place != null) {
+//                            strPlace = place.getName();
+//                            latitude = place.getLatLng().latitude;
+//                            longitude = place.getLatLng().longitude;
+                            Geocoder geocoder = new Geocoder(this, Locale.KOREA);
+                            strAddress = GPS2Address.get(geocoder, latitude, longitude);
+                            EditText et = findViewById(R.id.addressText);
+                            String text = strPlace + "\n" + strAddress;
+                            et.setText(text);
+                            et.setSelection(text.indexOf("\n") + 1);
+//                        mCamera.enableShutterSound(true);
+                            new Timer().schedule(new TimerTask() {
+                                public void run() {
+                                    startGetVoice();
+                                }
+                            }, 1000);
                     }
                 }
                 break;
@@ -540,7 +550,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // ↓ ↓ ↓ P E R M I S S I O N   RELATED /////// ↓ ↓ ↓ ↓  BEST CASE
+
+    // ↓ ↓ ↓ P E R M I S S I O N   RELATED /////// ↓ ↓ ↓ ↓  BEST CASE 20/09/27 with no lambda
     private final static int ALL_PERMISSIONS_RESULT = 101;
     ArrayList permissionsToRequest;
     ArrayList<String> permissionsRejected = new ArrayList<>();
@@ -551,7 +562,7 @@ public class MainActivity extends AppCompatActivity {
             PackageInfo info = getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), PackageManager.GET_PERMISSIONS);
             permissions = info.requestedPermissions;//This array contain
         } catch (Exception e) {
-            utils.log("Permission", "Not done");
+            Log.e("Permission", "Not done", e);
         }
 
         permissionsToRequest = findUnAskedPermissions();
@@ -567,12 +578,12 @@ public class MainActivity extends AppCompatActivity {
         for (String perm : permissions) if (hasPermission(perm)) result.add(perm);
         return result;
     }
-    private boolean hasPermission(@NonNull String permission) {
+    private boolean hasPermission(String permission) {
         return (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED);
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == ALL_PERMISSIONS_RESULT) {
             for (Object perms : permissionsToRequest) {
                 if (hasPermission((String) perms)) {
@@ -584,18 +595,25 @@ public class MainActivity extends AppCompatActivity {
                     String msg = "These permissions are mandatory for the application. Please allow access.";
                     showDialog(msg);
                 }
+                if (shouldShowRequestPermissionRationale(permissionsRejected.get(0))) {
+                    String msg = "These permissions are mandatory for the application. Please allow access.";
+                    showDialog(msg);
+                }
             }
-            else
-                Toast.makeText(mContext, "Permissions not granted.", Toast.LENGTH_LONG).show();
         }
     }
     private void showDialog(String msg) {
         showMessageOKCancel(msg,
-                (dialog, which) -> requestPermissions(permissionsRejected.toArray(
-                        new String[0]), ALL_PERMISSIONS_RESULT));
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        MainActivity.this.requestPermissions(permissionsRejected.toArray(
+                                new String[0]), ALL_PERMISSIONS_RESULT);
+                    }
+                });
     }
     private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
-        new android.app.AlertDialog.Builder(mActivity)
+        new android.app.AlertDialog.Builder(this)
                 .setMessage(message)
                 .setPositiveButton("OK", okListener)
                 .setNegativeButton("Cancel", null)

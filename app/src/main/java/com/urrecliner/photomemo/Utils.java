@@ -87,7 +87,7 @@ class Utils {
     }
 
     File getPackageDirectory() {
-        File directory = new File(Environment.getExternalStorageDirectory(), utils.getAppLabel(mContext));
+        File directory = new File(Environment.getExternalStorageDirectory(), mContext.getResources().getString(R.string.app_name));
         try {
             if (!directory.exists()) {
                 if(directory.mkdirs()) {
@@ -132,11 +132,13 @@ class Utils {
         File packageDirectory = getPackageDirectory();
         File[] files = getFilesList(packageDirectory);
         Collator myCollator = Collator.getInstance();
-        for (File file : files) {
-            String shortFileName = file.getName();
-            if (myCollator.compare(shortFileName, oldDate) < 0) {
-                if (file.delete())
-                    Log.e("file","Delete Error "+file);
+        if (files != null) {
+            for (File file : files) {
+                String shortFileName = file.getName();
+                if (myCollator.compare(shortFileName, oldDate) < 0) {
+                    if (file.delete())
+                        Log.e("file", "Delete Error " + file);
+                }
             }
         }
     }
